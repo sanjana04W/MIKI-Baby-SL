@@ -1,0 +1,2563 @@
+import { Category, Product, Order, Promotion, AdminUser, Review } from "@/types";
+
+// All images from /public/images/generated â€” every file included, no duplicates ignored
+const G = "/images/generated/";
+const GEN = {
+  // Named product images
+  safari:         G + "safari_animals_wall_art.jpg",
+  birthStats:     G + "birth_stats_cloud_art.jpg",
+  birthStats2:    G + "birth_stats_cloud_art2.jpg",
+  teddy:          G + "teddy_bear_moon_canvas.jpg",
+  giftBox:        G + "newborn_gift_box.jpg",
+  dreamBig:       G + "dream_big_trio.jpg",
+  fairy:          G + "fairy_nursery_trio.jpg",
+  zooAnimals:     G + "zoo_animals_trio.jpg",
+  oceanFriends:   G + "ocean_sea_friends.jpg",
+  dreamBigTrio:   G + "dream_big_trio.jpg",
+  ballerina:      G + "cute_ballerina_trio.jpg",
+  tigerCubs:      G + "playful_tiger_cubs.jpg",
+  // Hash-named images
+  h1:  G + "1114fe6d032afd527545be8f36cfc519.jpg",
+  h2:  G + "2439affbb43893d2730d10d46ad7a48a.jpg",
+  h3:  G + "49e2a58efed7617a8a67a1bfe229581e.jpg",
+  h4:  G + "4bef463073c61b5bf66efe3dde0be078.jpg",
+  h5:  G + "501647e3040bfadd480b95f2c2c8d320.jpg",
+  h6:  G + "56098fb940497fd864802414422dda69.jpg",
+  h7:  G + "588adcc1292e19f22629b9a9067ce9d7.jpg",
+  h8:  G + "5ae5c100935c14aed6976f09419b7acd.jpg",
+  h9:  G + "710b6fb29599ddfc3023443bf36ae9a1.jpg",
+  h10: G + "78505e4e714412dde88346dfb93ce3a0.jpg",
+  h11: G + "84e6f9cbb2296f1bfb2982dffd3c9a4d.jpg",
+  h12: G + "948c0ac5ae69f8d7e7cce0849d22fd74.jpg",
+  h13: G + "9b37e47de27bd31fee82815f4f214bdf.jpg",
+  h14: G + "b401c0d3e8cdfa968cb8178666984aae (1).jpg",
+  h15: G + "c4777bc05b6eb4ca11a1e84db25bdd13.jpg",
+  h16: G + "c63866498b893f6b41c1a1d1383a1fc7.jpg",
+  h17: G + "d17aa39cd30477539fbceab3ed1e1c01.jpg",
+  h18: G + "dbc6eaab91f6454f1c02eba20ba529ba.jpg",
+  h19: G + "dce5c57e548062d1ea2ecf8b743024bd.jpg",
+  h20: G + "ef6acf8ed71da8c28ea4fb415ac88e1a.jpg",
+  h21: G + "f01d187a9fcf81d8982e155dbfbf1ea9.jpg",
+  h22: G + "f3a399336fd040764151fd0d016502e5.jpg",
+  h23: G + "fabe9c23957fc32789be9b793d1980db.jpg",
+  h24: G + "ff048d1b7b791f0bbd7069b477b1076e.jpg",
+  // FB-style named images
+  fb1: G + "661247360_122186257130624717_6303554255591935628_n.jpg",
+  fb2: G + "662716319_122186257148624717_8751250535941888785_n.jpg",
+  fb3: G + "663230066_122186256194624717_2714207211240107477_n.jpg",
+  fb4: G + "666199980_122186361068624717_775971363478415830_n.jpg",
+  fb5: G + "666306518_122186361056624717_4875584005331826360_n.jpg",
+  fb6: G + "668271072_122186361494624717_3861453128746504963_n.jpg",
+  fb7: G + "718456847_1520346349833446_7910461552366139132_n.jpg",
+  fb8: G + "753237025_1395126676009795_4955110987979557331_n.jpg",
+  fb9: G + "763089367_1007491478769630_6882350155475435618_n.jpg",
+  fb10:G + "763689269_2385635011965212_540958391688230945_n.jpg",
+  fb11:G + "763722736_981191714970246_3891530839750944279_n.jpg",
+  fb12:G + "763722849_1006787005559509_3210787254525455474_n.jpg",
+  fb13:G + "764833169_1053744237623920_544167411264674824_n.jpg",
+  fb14:G + "771795671_3056850704503457_8126821694645117291_n.jpg",
+};
+
+
+export const INITIAL_CATEGORIES: Category[] = [
+  {
+    categoryId: "cat-wall-art",
+    name: "Baby Room Wall Art",
+    slug: "wall-art",
+    displayOrder: 1,
+    status: "active",
+    description: "Cute, whimsical, and customized framed prints and canvas wall art for nursery rooms.",
+    image: GEN.safari,
+  },
+  {
+    categoryId: "cat-gifts",
+    name: "Baby & Children's Gifts",
+    slug: "gifts",
+    displayOrder: 2,
+    status: "active",
+    description: "Timeless newborn gift sets, keepsake milestone markers, and birthday treasures.",
+    image: GEN.giftBox,
+  },
+  {
+    categoryId: "cat-nursery-decor",
+    name: "Nursery & Home Treasures",
+    slug: "nursery-decor",
+    displayOrder: 3,
+    status: "active",
+    description: "Charming wooden decor, height growth charts, door plaques, and cozy accent lights.",
+    image: GEN.h6,
+  },
+  {
+    categoryId: "cat-new-arrivals",
+    name: "New Arrivals",
+    slug: "new-arrivals",
+    displayOrder: 4,
+    status: "active",
+    description: "Discover our newest additions for your little one's dream room.",
+    image: GEN.teddy,
+  },
+  {
+    categoryId: "cat-best-sellers",
+    name: "Best Sellers",
+    slug: "best-sellers",
+    displayOrder: 5,
+    status: "active",
+    description: "Our most loved baby wall art pieces and gift sets in Sri Lanka.",
+    image: GEN.birthStats,
+  },
+  {
+    categoryId: "cat-offers",
+    name: "Offers & Sale",
+    slug: "offers",
+    displayOrder: 6,
+    status: "active",
+    description: "Special discounts and seasonal gift bundle savings.",
+    image: GEN.dreamBig,
+  },
+];
+
+export const INITIAL_PRODUCTS: Product[] = [
+  {
+    "productId": "miki-prod-001",
+    "name": "Watercolor Woodland Safari Wall Art Set",
+    "slug": "watercolor-woodland-safari-wall-art-set-001",
+    "categoryId": "cat-wall-art",
+    "description": "Watercolor Woodland Safari Wall Art Set — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Premium Linen Cardstock & Eco Pine Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 15
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3850,
+    "images": [
+      "/images/generated/1114fe6d032afd527545be8f36cfc519.jpg",
+      "/images/generated/2439affbb43893d2730d10d46ad7a48a.jpg",
+      "/images/generated/49e2a58efed7617a8a67a1bfe229581e.jpg"
+    ],
+    "stockLevel": 10,
+    "stockStatus": "low_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-01T14:47:25.238Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-002",
+    "name": "Personalized Baby Name & Birth Details Cloud Frame",
+    "slug": "personalized-baby-name-birth-details-cloud-frame-002",
+    "categoryId": "cat-wall-art",
+    "description": "Personalized Baby Name & Birth Details Cloud Frame — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Matte Artboard in Glass Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3500,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3500,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2100,
+        "stock": 16
+      }
+    ],
+    "basePrice": 3500,
+    "salePrice": 3150,
+    "images": [
+      "/images/generated/2439affbb43893d2730d10d46ad7a48a.jpg",
+      "/images/generated/49e2a58efed7617a8a67a1bfe229581e.jpg",
+      "/images/generated/4bef463073c61b5bf66efe3dde0be078.jpg"
+    ],
+    "stockLevel": 11,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-02T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-003",
+    "name": "Whimsical Little Bunny Growth Milestone Ruler",
+    "slug": "whimsical-little-bunny-growth-milestone-ruler-003",
+    "categoryId": "cat-nursery-decor",
+    "description": "Whimsical Little Bunny Growth Milestone Ruler — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "20 x 150 cm",
+    "material": "Smooth Birch Plywood with Natural Rope",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3200,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3200,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1920,
+        "stock": 17
+      }
+    ],
+    "basePrice": 3200,
+    "salePrice": 2850,
+    "images": [
+      "/images/generated/49e2a58efed7617a8a67a1bfe229581e.jpg",
+      "/images/generated/4bef463073c61b5bf66efe3dde0be078.jpg",
+      "/images/generated/501647e3040bfadd480b95f2c2c8d320.jpg"
+    ],
+    "stockLevel": 12,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-03T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-004",
+    "name": "Cute Sleeping Teddy on Crescent Moon LED Canvas",
+    "slug": "cute-sleeping-teddy-on-crescent-moon-led-canvas-004",
+    "categoryId": "cat-nursery-decor",
+    "description": "Cute Sleeping Teddy on Crescent Moon LED Canvas — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "35 x 35 cm Square",
+    "material": "Cotton Canvas with Built-in Warm LED Glow",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4800,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4800,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2880,
+        "stock": 18
+      }
+    ],
+    "basePrice": 4800,
+    "salePrice": 4250,
+    "images": [
+      "/images/generated/4bef463073c61b5bf66efe3dde0be078.jpg",
+      "/images/generated/501647e3040bfadd480b95f2c2c8d320.jpg",
+      "/images/generated/56098fb940497fd864802414422dda69.jpg"
+    ],
+    "stockLevel": 13,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-04T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-005",
+    "name": "Deluxe Newborn Keepsake & Milestone Gift Box",
+    "slug": "deluxe-newborn-keepsake-milestone-gift-box-005",
+    "categoryId": "cat-gifts",
+    "description": "Deluxe Newborn Keepsake & Milestone Gift Box — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "30 x 25 x 10 cm Box",
+    "material": "Eco Birchwood Box & Organic Cotton Gifts",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 5500,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 5500,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 3300,
+        "stock": 19
+      }
+    ],
+    "basePrice": 5500,
+    "salePrice": 4950,
+    "images": [
+      "/images/generated/501647e3040bfadd480b95f2c2c8d320.jpg",
+      "/images/generated/56098fb940497fd864802414422dda69.jpg",
+      "/images/generated/588adcc1292e19f22629b9a9067ce9d7.jpg"
+    ],
+    "stockLevel": 14,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-05T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-006",
+    "name": "Dream Big Little One Stars Typography Nursery Art",
+    "slug": "dream-big-little-one-stars-typography-nursery-art-006",
+    "categoryId": "cat-wall-art",
+    "description": "Dream Big Little One Stars Typography Nursery Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm)",
+    "material": "FSC Certified Heavyweight Art Paper",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2200,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2200,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1320,
+        "stock": 20
+      }
+    ],
+    "basePrice": 2200,
+    "salePrice": 1950,
+    "images": [
+      "/images/generated/56098fb940497fd864802414422dda69.jpg",
+      "/images/generated/588adcc1292e19f22629b9a9067ce9d7.jpg",
+      "/images/generated/5ae5c100935c14aed6976f09419b7acd.jpg"
+    ],
+    "stockLevel": 15,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-06T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-007",
+    "name": "Personalized 3D Layered Baby Name Door Sign",
+    "slug": "personalized-3d-layered-baby-name-door-sign-007",
+    "categoryId": "cat-nursery-decor",
+    "description": "Personalized 3D Layered Baby Name Door Sign — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "28 cm Diameter Plaque",
+    "material": "Natural Basswood with Pastel Acrylic Lettering",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2800,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2800,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1680,
+        "stock": 21
+      }
+    ],
+    "basePrice": 2800,
+    "salePrice": 2450,
+    "images": [
+      "/images/generated/588adcc1292e19f22629b9a9067ce9d7.jpg",
+      "/images/generated/5ae5c100935c14aed6976f09419b7acd.jpg",
+      "/images/generated/661247360_122186257130624717_6303554255591935628_n.jpg"
+    ],
+    "stockLevel": 16,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-07T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-008",
+    "name": "Baby Shower Memory Cards & Keepsake Wish Box",
+    "slug": "baby-shower-memory-cards-keepsake-wish-box-008",
+    "categoryId": "cat-gifts",
+    "description": "Baby Shower Memory Cards & Keepsake Wish Box — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "15 x 15 x 6 cm Box",
+    "material": "Engraved Wood Box & Gold Foil Milestone Cards",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2950,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2950,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1770,
+        "stock": 22
+      }
+    ],
+    "basePrice": 2950,
+    "salePrice": 2450,
+    "images": [
+      "/images/generated/5ae5c100935c14aed6976f09419b7acd.jpg",
+      "/images/generated/661247360_122186257130624717_6303554255591935628_n.jpg",
+      "/images/generated/662716319_122186257148624717_8751250535941888785_n.jpg"
+    ],
+    "stockLevel": 17,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-08T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-009",
+    "name": "Pastel Animal Party Parade Framed Art Trio",
+    "slug": "pastel-animal-party-parade-framed-art-trio-009",
+    "categoryId": "cat-wall-art",
+    "description": "Pastel Animal Party Parade Framed Art Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "Set of 3 (30 x 40 cm)",
+    "material": "Anti-glare Matte Canvas in White Pine Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4600,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4600,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2760,
+        "stock": 23
+      }
+    ],
+    "basePrice": 4600,
+    "salePrice": 4100,
+    "images": [
+      "/images/generated/661247360_122186257130624717_6303554255591935628_n.jpg",
+      "/images/generated/662716319_122186257148624717_8751250535941888785_n.jpg",
+      "/images/generated/663230066_122186256194624717_2714207211240107477_n.jpg"
+    ],
+    "stockLevel": 18,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-09T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-010",
+    "name": "Handcrafted Teak Wood Mountain Silhouette Night Lamp",
+    "slug": "handcrafted-teak-wood-mountain-silhouette-night-lamp-010",
+    "categoryId": "cat-nursery-decor",
+    "description": "Handcrafted Teak Wood Mountain Silhouette Night Lamp — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "22 x 18 x 5 cm",
+    "material": "Solid Teak Wood with Warm LED Circuit",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3800,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3800,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2280,
+        "stock": 24
+      }
+    ],
+    "basePrice": 3800,
+    "salePrice": 3400,
+    "images": [
+      "/images/generated/662716319_122186257148624717_8751250535941888785_n.jpg",
+      "/images/generated/663230066_122186256194624717_2714207211240107477_n.jpg",
+      "/images/generated/666199980_122186361068624717_775971363478415830_n.jpg"
+    ],
+    "stockLevel": 19,
+    "stockStatus": "low_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-10T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-011",
+    "name": "Cute Fairy Princess Nursery Wall Art Trio",
+    "slug": "cute-fairy-princess-nursery-wall-art-trio-011",
+    "categoryId": "cat-wall-art",
+    "description": "Cute Fairy Princess Nursery Wall Art Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Premium Linen Cardstock & White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3900,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3900,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2340,
+        "stock": 15
+      }
+    ],
+    "basePrice": 3900,
+    "salePrice": 3500,
+    "images": [
+      "/images/generated/663230066_122186256194624717_2714207211240107477_n.jpg",
+      "/images/generated/666199980_122186361068624717_775971363478415830_n.jpg",
+      "/images/generated/666306518_122186361056624717_4875584005331826360_n.jpg"
+    ],
+    "stockLevel": 20,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-11T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-012",
+    "name": "Vibrant Zoo Animals Nursery Prints Set of 3",
+    "slug": "vibrant-zoo-animals-nursery-prints-set-of-3-012",
+    "categoryId": "cat-wall-art",
+    "description": "Vibrant Zoo Animals Nursery Prints Set of 3 — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Linen Cardstock in Eco Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 16
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3800,
+    "images": [
+      "/images/generated/666199980_122186361068624717_775971363478415830_n.jpg",
+      "/images/generated/666306518_122186361056624717_4875584005331826360_n.jpg",
+      "/images/generated/668271072_122186361494624717_3861453128746504963_n.jpg"
+    ],
+    "stockLevel": 21,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-12T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-013",
+    "name": "Baby Sea Friends Ocean Nursery Wall Art Trio",
+    "slug": "baby-sea-friends-ocean-nursery-wall-art-trio-013",
+    "categoryId": "cat-wall-art",
+    "description": "Baby Sea Friends Ocean Nursery Wall Art Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Anti-glare Matte Canvas in White Pine Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 17
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3750,
+    "images": [
+      "/images/generated/666306518_122186361056624717_4875584005331826360_n.jpg",
+      "/images/generated/668271072_122186361494624717_3861453128746504963_n.jpg",
+      "/images/generated/710b6fb29599ddfc3023443bf36ae9a1.jpg"
+    ],
+    "stockLevel": 22,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-13T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-014",
+    "name": "Motivational Scandinavian Nursery Art Print Trio",
+    "slug": "motivational-scandinavian-nursery-art-print-trio-014",
+    "categoryId": "cat-wall-art",
+    "description": "Motivational Scandinavian Nursery Art Print Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "FSC Heavyweight Paper in White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3600,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3600,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2160,
+        "stock": 18
+      }
+    ],
+    "basePrice": 3600,
+    "salePrice": 3200,
+    "images": [
+      "/images/generated/668271072_122186361494624717_3861453128746504963_n.jpg",
+      "/images/generated/710b6fb29599ddfc3023443bf36ae9a1.jpg",
+      "/images/generated/718456847_1520346349833446_7910461552366139132_n.jpg"
+    ],
+    "stockLevel": 23,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-14T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-015",
+    "name": "Graceful Pastel Ballerina Trio Nursery Art",
+    "slug": "graceful-pastel-ballerina-trio-nursery-art-015",
+    "categoryId": "cat-wall-art",
+    "description": "Graceful Pastel Ballerina Trio Nursery Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Linen Cardstock in White Wooden Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3900,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3900,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2340,
+        "stock": 19
+      }
+    ],
+    "basePrice": 3900,
+    "salePrice": 3500,
+    "images": [
+      "/images/generated/710b6fb29599ddfc3023443bf36ae9a1.jpg",
+      "/images/generated/718456847_1520346349833446_7910461552366139132_n.jpg",
+      "/images/generated/753237025_1395126676009795_4955110987979557331_n.jpg"
+    ],
+    "stockLevel": 24,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-15T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-016",
+    "name": "Sweet Little Champ Baby Tiger Cubs Framed Prints",
+    "slug": "sweet-little-champ-baby-tiger-cubs-framed-prints-016",
+    "categoryId": "cat-wall-art",
+    "description": "Sweet Little Champ Baby Tiger Cubs Framed Prints — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Matte Canvas in Natural Wood Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 20
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3850,
+    "images": [
+      "/images/generated/718456847_1520346349833446_7910461552366139132_n.jpg",
+      "/images/generated/753237025_1395126676009795_4955110987979557331_n.jpg",
+      "/images/generated/763089367_1007491478769630_6882350155475435618_n.jpg"
+    ],
+    "stockLevel": 10,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-16T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-017",
+    "name": "Pastel Dream Safari Animals Baby Room Print Set",
+    "slug": "pastel-dream-safari-animals-baby-room-print-set-017",
+    "categoryId": "cat-wall-art",
+    "description": "Pastel Dream Safari Animals Baby Room Print Set — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Premium Cardstock & Pine Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4100,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4100,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2460,
+        "stock": 21
+      }
+    ],
+    "basePrice": 4100,
+    "salePrice": 3650,
+    "images": [
+      "/images/generated/753237025_1395126676009795_4955110987979557331_n.jpg",
+      "/images/generated/763089367_1007491478769630_6882350155475435618_n.jpg",
+      "/images/generated/763689269_2385635011965212_540958391688230945_n.jpg"
+    ],
+    "stockLevel": 11,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-17T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-018",
+    "name": "Golden Star & Crescent Moon Birth Milestone Frame",
+    "slug": "golden-star-crescent-moon-birth-milestone-frame-018",
+    "categoryId": "cat-wall-art",
+    "description": "Golden Star & Crescent Moon Birth Milestone Frame — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Custom Foil Stamped Artboard",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3400,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3400,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2040,
+        "stock": 22
+      }
+    ],
+    "basePrice": 3400,
+    "salePrice": 2950,
+    "images": [
+      "/images/generated/763089367_1007491478769630_6882350155475435618_n.jpg",
+      "/images/generated/763689269_2385635011965212_540958391688230945_n.jpg",
+      "/images/generated/763722736_981191714970246_3891530839750944279_n.jpg"
+    ],
+    "stockLevel": 12,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-18T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-019",
+    "name": "Boho Rainbow & Hot Air Balloon Nursery Wall Trio",
+    "slug": "boho-rainbow-hot-air-balloon-nursery-wall-trio-019",
+    "categoryId": "cat-wall-art",
+    "description": "Boho Rainbow & Hot Air Balloon Nursery Wall Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Linen Textured Cardstock",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3800,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3800,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2280,
+        "stock": 23
+      }
+    ],
+    "basePrice": 3800,
+    "salePrice": 3350,
+    "images": [
+      "/images/generated/763689269_2385635011965212_540958391688230945_n.jpg",
+      "/images/generated/763722736_981191714970246_3891530839750944279_n.jpg",
+      "/images/generated/763722849_1006787005559509_3210787254525455474_n.jpg"
+    ],
+    "stockLevel": 13,
+    "stockStatus": "low_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-19T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-020",
+    "name": "Baby Elephant & Floating Balloons Room Art",
+    "slug": "baby-elephant-floating-balloons-room-art-020",
+    "categoryId": "cat-wall-art",
+    "description": "Baby Elephant & Floating Balloons Room Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "30 x 40 cm Framed Print",
+    "material": "Anti-Shatter Acrylic & Wood Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3500,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3500,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2100,
+        "stock": 24
+      }
+    ],
+    "basePrice": 3500,
+    "salePrice": 3100,
+    "images": [
+      "/images/generated/763722736_981191714970246_3891530839750944279_n.jpg",
+      "/images/generated/763722849_1006787005559509_3210787254525455474_n.jpg",
+      "/images/generated/764833169_1053744237623920_544167411264674824_n.jpg"
+    ],
+    "stockLevel": 14,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-20T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-021",
+    "name": "Cozy Fox & Forest Friends Nursery Wall Art",
+    "slug": "cozy-fox-forest-friends-nursery-wall-art-021",
+    "categoryId": "cat-wall-art",
+    "description": "Cozy Fox & Forest Friends Nursery Wall Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Premium Linen Cardstock",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4000,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4000,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2400,
+        "stock": 15
+      }
+    ],
+    "basePrice": 4000,
+    "salePrice": 3600,
+    "images": [
+      "/images/generated/763722849_1006787005559509_3210787254525455474_n.jpg",
+      "/images/generated/764833169_1053744237623920_544167411264674824_n.jpg",
+      "/images/generated/771795671_3056850704503457_8126821694645117291_n.jpg"
+    ],
+    "stockLevel": 15,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-21T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-022",
+    "name": "Custom Wooden Milestone Photo Discs Set (12 Months)",
+    "slug": "custom-wooden-milestone-photo-discs-set-12-months-022",
+    "categoryId": "cat-gifts",
+    "description": "Custom Wooden Milestone Photo Discs Set (12 Months) — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "10 cm Diameter per Disc (Set of 12)",
+    "material": "Engraved Natural Birch Plywood",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2600,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2600,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1560,
+        "stock": 16
+      }
+    ],
+    "basePrice": 2600,
+    "salePrice": 2250,
+    "images": [
+      "/images/generated/764833169_1053744237623920_544167411264674824_n.jpg",
+      "/images/generated/771795671_3056850704503457_8126821694645117291_n.jpg",
+      "/images/generated/78505e4e714412dde88346dfb93ce3a0.jpg"
+    ],
+    "stockLevel": 16,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-22T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-023",
+    "name": "Little Explorer World Map Nursery Canvas",
+    "slug": "little-explorer-world-map-nursery-canvas-023",
+    "categoryId": "cat-nursery-decor",
+    "description": "Little Explorer World Map Nursery Canvas — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "50 x 70 cm Canvas",
+    "material": "Stretched Canvas on Solid Pine",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4500,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4500,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2700,
+        "stock": 17
+      }
+    ],
+    "basePrice": 4500,
+    "salePrice": 3950,
+    "images": [
+      "/images/generated/771795671_3056850704503457_8126821694645117291_n.jpg",
+      "/images/generated/78505e4e714412dde88346dfb93ce3a0.jpg",
+      "/images/generated/84e6f9cbb2296f1bfb2982dffd3c9a4d.jpg"
+    ],
+    "stockLevel": 17,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-23T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-024",
+    "name": "Sweet Dreams Baby Bear Hanging Wall Clock",
+    "slug": "sweet-dreams-baby-bear-hanging-wall-clock-024",
+    "categoryId": "cat-nursery-decor",
+    "description": "Sweet Dreams Baby Bear Hanging Wall Clock — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "25 cm Diameter",
+    "material": "Silent Quartz Movement & Eco Wood",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3100,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3100,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1860,
+        "stock": 18
+      }
+    ],
+    "basePrice": 3100,
+    "salePrice": 2750,
+    "images": [
+      "/images/generated/78505e4e714412dde88346dfb93ce3a0.jpg",
+      "/images/generated/84e6f9cbb2296f1bfb2982dffd3c9a4d.jpg",
+      "/images/generated/948c0ac5ae69f8d7e7cce0849d22fd74.jpg"
+    ],
+    "stockLevel": 18,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-24T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-025",
+    "name": "Baby Girl Floral Wreath Birth Stats Plaque",
+    "slug": "baby-girl-floral-wreath-birth-stats-plaque-025",
+    "categoryId": "cat-wall-art",
+    "description": "Baby Girl Floral Wreath Birth Stats Plaque — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Watercolour Floral Art in White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3600,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3600,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2160,
+        "stock": 19
+      }
+    ],
+    "basePrice": 3600,
+    "salePrice": 3200,
+    "images": [
+      "/images/generated/84e6f9cbb2296f1bfb2982dffd3c9a4d.jpg",
+      "/images/generated/948c0ac5ae69f8d7e7cce0849d22fd74.jpg",
+      "/images/generated/9b37e47de27bd31fee82815f4f214bdf.jpg"
+    ],
+    "stockLevel": 19,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-25T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-026",
+    "name": "Jungle Animals Alphabet ABC Learning Wall Art",
+    "slug": "jungle-animals-alphabet-abc-learning-wall-art-026",
+    "categoryId": "cat-wall-art",
+    "description": "Jungle Animals Alphabet ABC Learning Wall Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Matte Laminated Educational Artboard",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3300,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3300,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1980,
+        "stock": 20
+      }
+    ],
+    "basePrice": 3300,
+    "salePrice": 2900,
+    "images": [
+      "/images/generated/948c0ac5ae69f8d7e7cce0849d22fd74.jpg",
+      "/images/generated/9b37e47de27bd31fee82815f4f214bdf.jpg",
+      "/images/generated/b401c0d3e8cdfa968cb8178666984aae (1).jpg"
+    ],
+    "stockLevel": 20,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-26T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-027",
+    "name": "Baby Keepsake Tooth & Curl Wooden Storage Box",
+    "slug": "baby-keepsake-tooth-curl-wooden-storage-box-027",
+    "categoryId": "cat-gifts",
+    "description": "Baby Keepsake Tooth & Curl Wooden Storage Box — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "12 x 12 x 4 cm",
+    "material": "Laser-Carved Solid Beech Wood",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2100,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2100,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1260,
+        "stock": 21
+      }
+    ],
+    "basePrice": 2100,
+    "salePrice": 1800,
+    "images": [
+      "/images/generated/9b37e47de27bd31fee82815f4f214bdf.jpg",
+      "/images/generated/b401c0d3e8cdfa968cb8178666984aae (1).jpg",
+      "/images/generated/birth_stats_cloud_art.jpg"
+    ],
+    "stockLevel": 21,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-27T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-028",
+    "name": "Cute Panda & Bamboo Branch Nursery Wall Canvas",
+    "slug": "cute-panda-bamboo-branch-nursery-wall-canvas-028",
+    "categoryId": "cat-wall-art",
+    "description": "Cute Panda & Bamboo Branch Nursery Wall Canvas — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "30 x 30 cm Set of 2",
+    "material": "Cotton Canvas Stretched on Wood",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3700,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3700,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2220,
+        "stock": 22
+      }
+    ],
+    "basePrice": 3700,
+    "salePrice": 3300,
+    "images": [
+      "/images/generated/b401c0d3e8cdfa968cb8178666984aae (1).jpg",
+      "/images/generated/birth_stats_cloud_art.jpg",
+      "/images/generated/birth_stats_cloud_art2.jpg"
+    ],
+    "stockLevel": 22,
+    "stockStatus": "low_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-28T14:47:25.242Z",
+    "updatedAt": "2026-08-19T14:47:25.242Z"
+  },
+  {
+    "productId": "miki-prod-029",
+    "name": "Soft Glow Cloud LED Night Light Wall Fixture",
+    "slug": "soft-glow-cloud-led-night-light-wall-fixture-029",
+    "categoryId": "cat-nursery-decor",
+    "description": "Soft Glow Cloud LED Night Light Wall Fixture — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "28 x 18 cm",
+    "material": "Eco Wood with Touch Dimmer LED",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3400,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3400,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2040,
+        "stock": 23
+      }
+    ],
+    "basePrice": 3400,
+    "salePrice": 2950,
+    "images": [
+      "/images/generated/birth_stats_cloud_art.jpg",
+      "/images/generated/birth_stats_cloud_art2.jpg",
+      "/images/generated/c4777bc05b6eb4ca11a1e84db25bdd13.jpg"
+    ],
+    "stockLevel": 23,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-29T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-030",
+    "name": "Personalized Baby Hospital Bag Milestone Tags",
+    "slug": "personalized-baby-hospital-bag-milestone-tags-030",
+    "categoryId": "cat-gifts",
+    "description": "Personalized Baby Hospital Bag Milestone Tags — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "Set of 6 Wooden Tags",
+    "material": "Birch Wood with Leather Straps",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 1800,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 1800,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1080,
+        "stock": 24
+      }
+    ],
+    "basePrice": 1800,
+    "salePrice": 1500,
+    "images": [
+      "/images/generated/birth_stats_cloud_art2.jpg",
+      "/images/generated/c4777bc05b6eb4ca11a1e84db25bdd13.jpg",
+      "/images/generated/c63866498b893f6b41c1a1d1383a1fc7.jpg"
+    ],
+    "stockLevel": 24,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-07-30T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-031",
+    "name": "Happy Farm Animals Nursery Room Wall Prints",
+    "slug": "happy-farm-animals-nursery-room-wall-prints-031",
+    "categoryId": "cat-wall-art",
+    "description": "Happy Farm Animals Nursery Room Wall Prints — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Linen Art Paper in Pine Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3900,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3900,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2340,
+        "stock": 15
+      }
+    ],
+    "basePrice": 3900,
+    "salePrice": 3450,
+    "images": [
+      "/images/generated/c4777bc05b6eb4ca11a1e84db25bdd13.jpg",
+      "/images/generated/c63866498b893f6b41c1a1d1383a1fc7.jpg",
+      "/images/generated/cute_ballerina_trio.jpg"
+    ],
+    "stockLevel": 10,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-07-31T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-032",
+    "name": "Twinkle Twinkle Little Star Nursery Song Canvas",
+    "slug": "twinkle-twinkle-little-star-nursery-song-canvas-032",
+    "categoryId": "cat-wall-art",
+    "description": "Twinkle Twinkle Little Star Nursery Song Canvas — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "30 x 40 cm Canvas",
+    "material": "Waterproof Matte Canvas",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3100,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3100,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1860,
+        "stock": 16
+      }
+    ],
+    "basePrice": 3100,
+    "salePrice": 2700,
+    "images": [
+      "/images/generated/c63866498b893f6b41c1a1d1383a1fc7.jpg",
+      "/images/generated/cute_ballerina_trio.jpg",
+      "/images/generated/d17aa39cd30477539fbceab3ed1e1c01.jpg"
+    ],
+    "stockLevel": 11,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-01T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-033",
+    "name": "Safari Lion King Cub Nursery Room Decor Frame",
+    "slug": "safari-lion-king-cub-nursery-room-decor-frame-033",
+    "categoryId": "cat-wall-art",
+    "description": "Safari Lion King Cub Nursery Room Decor Frame — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Fine Art Print in Natural Wood Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3500,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3500,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2100,
+        "stock": 17
+      }
+    ],
+    "basePrice": 3500,
+    "salePrice": 3100,
+    "images": [
+      "/images/generated/cute_ballerina_trio.jpg",
+      "/images/generated/d17aa39cd30477539fbceab3ed1e1c01.jpg",
+      "/images/generated/dbc6eaab91f6454f1c02eba20ba529ba.jpg"
+    ],
+    "stockLevel": 12,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-02T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-034",
+    "name": "Modern Pastel Dino Friends Baby Nursery Art",
+    "slug": "modern-pastel-dino-friends-baby-nursery-art-034",
+    "categoryId": "cat-wall-art",
+    "description": "Modern Pastel Dino Friends Baby Nursery Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Linen Cardstock",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 18
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3750,
+    "images": [
+      "/images/generated/d17aa39cd30477539fbceab3ed1e1c01.jpg",
+      "/images/generated/dbc6eaab91f6454f1c02eba20ba529ba.jpg",
+      "/images/generated/dce5c57e548062d1ea2ecf8b743024bd.jpg"
+    ],
+    "stockLevel": 13,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-03T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-035",
+    "name": "Handcrafted Wooden Baby Rattle & Teether Gift Set",
+    "slug": "handcrafted-wooden-baby-rattle-teether-gift-set-035",
+    "categoryId": "cat-gifts",
+    "description": "Handcrafted Wooden Baby Rattle & Teether Gift Set — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "Gift Pack: 3-piece set",
+    "material": "Organic Beechwood & Food-grade Silicone",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2700,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2700,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1620,
+        "stock": 19
+      }
+    ],
+    "basePrice": 2700,
+    "salePrice": 2350,
+    "images": [
+      "/images/generated/dbc6eaab91f6454f1c02eba20ba529ba.jpg",
+      "/images/generated/dce5c57e548062d1ea2ecf8b743024bd.jpg",
+      "/images/generated/dream_big_trio.jpg"
+    ],
+    "stockLevel": 14,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-04T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-036",
+    "name": "Personalized Wooden Keepsake Memory Trunk",
+    "slug": "personalized-wooden-keepsake-memory-trunk-036",
+    "categoryId": "cat-gifts",
+    "description": "Personalized Wooden Keepsake Memory Trunk — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "35 x 25 x 15 cm",
+    "material": "Engraved Solid Pine with Brass Latch",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 5800,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 5800,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 3480,
+        "stock": 20
+      }
+    ],
+    "basePrice": 5800,
+    "salePrice": 5200,
+    "images": [
+      "/images/generated/dce5c57e548062d1ea2ecf8b743024bd.jpg",
+      "/images/generated/dream_big_trio.jpg",
+      "/images/generated/ef6acf8ed71da8c28ea4fb415ac88e1a.jpg"
+    ],
+    "stockLevel": 15,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-08-05T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-037",
+    "name": "Cute Sleepy Sloth & Tropical Leaves Nursery Art",
+    "slug": "cute-sleepy-sloth-tropical-leaves-nursery-art-037",
+    "categoryId": "cat-wall-art",
+    "description": "Cute Sleepy Sloth & Tropical Leaves Nursery Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Eco Wooden Frames & Matte Prints",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3800,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3800,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2280,
+        "stock": 21
+      }
+    ],
+    "basePrice": 3800,
+    "salePrice": 3400,
+    "images": [
+      "/images/generated/dream_big_trio.jpg",
+      "/images/generated/ef6acf8ed71da8c28ea4fb415ac88e1a.jpg",
+      "/images/generated/f01d187a9fcf81d8982e155dbfbf1ea9.jpg"
+    ],
+    "stockLevel": 16,
+    "stockStatus": "low_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-06T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-038",
+    "name": "You Are My Sunshine Nursery Typography Wall Art",
+    "slug": "you-are-my-sunshine-nursery-typography-wall-art-038",
+    "categoryId": "cat-wall-art",
+    "description": "You Are My Sunshine Nursery Typography Wall Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm)",
+    "material": "Gold Foil Print in White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2400,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2400,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1440,
+        "stock": 22
+      }
+    ],
+    "basePrice": 2400,
+    "salePrice": 2100,
+    "images": [
+      "/images/generated/ef6acf8ed71da8c28ea4fb415ac88e1a.jpg",
+      "/images/generated/f01d187a9fcf81d8982e155dbfbf1ea9.jpg",
+      "/images/generated/f3a399336fd040764151fd0d016502e5.jpg"
+    ],
+    "stockLevel": 17,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-07T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-039",
+    "name": "Gentle Giraffe Height Measuring Wall Canvas",
+    "slug": "gentle-giraffe-height-measuring-wall-canvas-039",
+    "categoryId": "cat-nursery-decor",
+    "description": "Gentle Giraffe Height Measuring Wall Canvas — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "20 x 140 cm",
+    "material": "Hanging Fabric Canvas with Wooden Bars",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3400,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3400,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2040,
+        "stock": 23
+      }
+    ],
+    "basePrice": 3400,
+    "salePrice": 2950,
+    "images": [
+      "/images/generated/f01d187a9fcf81d8982e155dbfbf1ea9.jpg",
+      "/images/generated/f3a399336fd040764151fd0d016502e5.jpg",
+      "/images/generated/fabe9c23957fc32789be9b793d1980db.jpg"
+    ],
+    "stockLevel": 18,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-08T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-040",
+    "name": "Personalized First Year 12-Month Photo Frame",
+    "slug": "personalized-first-year-12-month-photo-frame-040",
+    "categoryId": "cat-wall-art",
+    "description": "Personalized First Year 12-Month Photo Frame — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "40 x 50 cm Multi-Aperture",
+    "material": "Solid Wood Frame with Beveled Mat",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4600,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4600,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2760,
+        "stock": 24
+      }
+    ],
+    "basePrice": 4600,
+    "salePrice": 4100,
+    "images": [
+      "/images/generated/f3a399336fd040764151fd0d016502e5.jpg",
+      "/images/generated/fabe9c23957fc32789be9b793d1980db.jpg",
+      "/images/generated/fairy_nursery_trio.jpg"
+    ],
+    "stockLevel": 19,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-08-09T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-041",
+    "name": "Pastel Whale & Nautical Sea Nursery Prints",
+    "slug": "pastel-whale-nautical-sea-nursery-prints-041",
+    "categoryId": "cat-wall-art",
+    "description": "Pastel Whale & Nautical Sea Nursery Prints — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Heavyweight Linen Paper in Wood Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3900,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3900,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2340,
+        "stock": 15
+      }
+    ],
+    "basePrice": 3900,
+    "salePrice": 3500,
+    "images": [
+      "/images/generated/fabe9c23957fc32789be9b793d1980db.jpg",
+      "/images/generated/fairy_nursery_trio.jpg",
+      "/images/generated/ff048d1b7b791f0bbd7069b477b1076e.jpg"
+    ],
+    "stockLevel": 20,
+    "stockStatus": "in_stock",
+    "isFeatured": true,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-10T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-042",
+    "name": "Baby Room Hanging Hot Air Balloon Wooden Mobile",
+    "slug": "baby-room-hanging-hot-air-balloon-wooden-mobile-042",
+    "categoryId": "cat-nursery-decor",
+    "description": "Baby Room Hanging Hot Air Balloon Wooden Mobile — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "30 x 45 cm Hanging",
+    "material": "Laser-Cut Birch Wood & Felt Accents",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3200,
+        "stock": 11
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3200,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1920,
+        "stock": 16
+      }
+    ],
+    "basePrice": 3200,
+    "salePrice": 2800,
+    "images": [
+      "/images/generated/fairy_nursery_trio.jpg",
+      "/images/generated/ff048d1b7b791f0bbd7069b477b1076e.jpg",
+      "/images/generated/newborn_gift_box.jpg"
+    ],
+    "stockLevel": 21,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-11T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-043",
+    "name": "Personalized Baby Birth Stats Wooden Cube Clock",
+    "slug": "personalized-baby-birth-stats-wooden-cube-clock-043",
+    "categoryId": "cat-nursery-decor",
+    "description": "Personalized Baby Birth Stats Wooden Cube Clock — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "10 x 10 x 10 cm",
+    "material": "Solid Beechwood with Digital LED Display",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3600,
+        "stock": 12
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3600,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2160,
+        "stock": 17
+      }
+    ],
+    "basePrice": 3600,
+    "salePrice": 3200,
+    "images": [
+      "/images/generated/ff048d1b7b791f0bbd7069b477b1076e.jpg",
+      "/images/generated/newborn_gift_box.jpg",
+      "/images/generated/ocean_sea_friends.jpg"
+    ],
+    "stockLevel": 22,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-08-12T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-044",
+    "name": "Sweet Little Princess Crown & Stars Wall Art",
+    "slug": "sweet-little-princess-crown-stars-wall-art-044",
+    "categoryId": "cat-wall-art",
+    "description": "Sweet Little Princess Crown & Stars Wall Art — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A3 (30 x 42 cm)",
+    "material": "Glitter Embellished Print in White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 3500,
+        "stock": 13
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 3500,
+        "stock": 9
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2100,
+        "stock": 18
+      }
+    ],
+    "basePrice": 3500,
+    "salePrice": 3100,
+    "images": [
+      "/images/generated/newborn_gift_box.jpg",
+      "/images/generated/ocean_sea_friends.jpg",
+      "/images/generated/playful_tiger_cubs.jpg"
+    ],
+    "stockLevel": 23,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-13T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-045",
+    "name": "Koala Bear & Eucalyptus Leaves Nursery Art Trio",
+    "slug": "koala-bear-eucalyptus-leaves-nursery-art-trio-045",
+    "categoryId": "cat-wall-art",
+    "description": "Koala Bear & Eucalyptus Leaves Nursery Art Trio — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Watercolour Prints in Natural Wood",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4100,
+        "stock": 14
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4100,
+        "stock": 10
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2460,
+        "stock": 19
+      }
+    ],
+    "basePrice": 4100,
+    "salePrice": 3650,
+    "images": [
+      "/images/generated/ocean_sea_friends.jpg",
+      "/images/generated/playful_tiger_cubs.jpg",
+      "/images/generated/safari_animals_wall_art.jpg"
+    ],
+    "stockLevel": 24,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-14T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-046",
+    "name": "Baby Shower Keepsake Guest Signature Book",
+    "slug": "baby-shower-keepsake-guest-signature-book-046",
+    "categoryId": "cat-gifts",
+    "description": "Baby Shower Keepsake Guest Signature Book — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "21 x 21 cm Hardcover",
+    "material": "Linen Hardcover with Embossed Gold Foil",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2900,
+        "stock": 15
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2900,
+        "stock": 11
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1740,
+        "stock": 20
+      }
+    ],
+    "basePrice": 2900,
+    "salePrice": 2500,
+    "images": [
+      "/images/generated/playful_tiger_cubs.jpg",
+      "/images/generated/safari_animals_wall_art.jpg",
+      "/images/generated/teddy_bear_moon_canvas.jpg"
+    ],
+    "stockLevel": 10,
+    "stockStatus": "low_stock",
+    "isFeatured": true,
+    "isNewArrival": false,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-15T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-047",
+    "name": "Adorable Woodland Animals Playtime Wall Art Set",
+    "slug": "adorable-woodland-animals-playtime-wall-art-set-047",
+    "categoryId": "cat-wall-art",
+    "description": "Adorable Woodland Animals Playtime Wall Art Set — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "300gsm Premium Linen Cardstock",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4300,
+        "stock": 16
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4300,
+        "stock": 12
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2580,
+        "stock": 21
+      }
+    ],
+    "basePrice": 4300,
+    "salePrice": 3850,
+    "images": [
+      "/images/generated/safari_animals_wall_art.jpg",
+      "/images/generated/teddy_bear_moon_canvas.jpg",
+      "/images/generated/zoo_animals_trio.jpg"
+    ],
+    "stockLevel": 11,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-16T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-048",
+    "name": "Personalized Nursery Wooden Name Wall Pennant",
+    "slug": "personalized-nursery-wooden-name-wall-pennant-048",
+    "categoryId": "cat-nursery-decor",
+    "description": "Personalized Nursery Wooden Name Wall Pennant — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "25 x 35 cm",
+    "material": "Natural Cotton Canvas & Wooden Dowel",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 2500,
+        "stock": 17
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 2500,
+        "stock": 13
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 1500,
+        "stock": 22
+      }
+    ],
+    "basePrice": 2500,
+    "salePrice": 2200,
+    "images": [
+      "/images/generated/teddy_bear_moon_canvas.jpg",
+      "/images/generated/zoo_animals_trio.jpg",
+      "/images/generated/1114fe6d032afd527545be8f36cfc519.jpg"
+    ],
+    "stockLevel": 12,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": false,
+    "isPersonalizable": true,
+    "personalizationFields": [
+      "Baby Name",
+      "Date of Birth",
+      "Birth Weight",
+      "Time"
+    ],
+    "status": "active",
+    "createdAt": "2026-08-17T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  },
+  {
+    "productId": "miki-prod-049",
+    "name": "Magical Unicorn & Rainbow Clouds Nursery Wall Set",
+    "slug": "magical-unicorn-rainbow-clouds-nursery-wall-set-049",
+    "categoryId": "cat-wall-art",
+    "description": "Magical Unicorn & Rainbow Clouds Nursery Wall Set — meticulously crafted for cozy Sri Lankan nurseries and baby rooms. Features premium non-toxic materials, high-definition art printing, and arrives ready to display or gift. Islandwide Cash on Delivery available.",
+    "dimensions": "A4 (21 x 29.7 cm) Set of 3",
+    "material": "Fine Linen Print in White Frame",
+    "variants": [
+      {
+        "id": "v1",
+        "name": "Framed - White Wood",
+        "price": 4200,
+        "stock": 10
+      },
+      {
+        "id": "v2",
+        "name": "Framed - Natural Wood",
+        "price": 4200,
+        "stock": 8
+      },
+      {
+        "id": "v3",
+        "name": "Unframed Print Only",
+        "price": 2520,
+        "stock": 23
+      }
+    ],
+    "basePrice": 4200,
+    "salePrice": 3800,
+    "images": [
+      "/images/generated/zoo_animals_trio.jpg",
+      "/images/generated/1114fe6d032afd527545be8f36cfc519.jpg",
+      "/images/generated/2439affbb43893d2730d10d46ad7a48a.jpg"
+    ],
+    "stockLevel": 13,
+    "stockStatus": "in_stock",
+    "isFeatured": false,
+    "isNewArrival": true,
+    "isPersonalizable": false,
+    "status": "active",
+    "createdAt": "2026-08-18T14:47:25.243Z",
+    "updatedAt": "2026-08-19T14:47:25.243Z"
+  }
+];
+
+export const INITIAL_ORDERS: Order[] = [
+  {
+    orderId: "MIKI-2026-1001",
+    customerInfo: {
+      name: "Dinithi Perera",
+      phone: "0771234567",
+      email: "dinithi.p@gmail.com",
+      address: "No. 42, Havelock Road, Colombo 05",
+      district: "Colombo",
+      notes: "Please call before delivery. Delivering to apartment reception.",
+    },
+    items: [
+      {
+        productId: "miki-prod-001",
+        name: "Safari Jungle Animals Nursery Wall Art (Set of 3)",
+        price: 3850,
+        quantity: 1,
+        variant: "Framed - Natural Wood (Set of 3)",
+        image: GEN.safari,
+      },
+    ],
+    subtotal: 3850,
+    deliveryFee: 300,
+    discountAmount: 0,
+    totalAmount: 4150,
+    paymentMethod: "COD",
+    paymentStatus: "pending",
+    orderStatus: "Pending",
+    createdAt: "2026-08-15T09:15:00Z",
+    updatedAt: "2026-08-15T09:15:00Z",
+  },
+  {
+    orderId: "MIKI-2026-1002",
+    customerInfo: {
+      name: "Sahan Rajapaksha",
+      phone: "0719876543",
+      email: "sahan.raj@outlook.com",
+      address: "15/A, Kandy Road, Kiribathgoda",
+      district: "Gampaha",
+      notes: "Gift packaging requested.",
+      giftWrap: true,
+      giftNote: "Happy 1st Birthday little prince!",
+    },
+    items: [
+      {
+        productId: "miki-prod-005",
+        name: "Luxury Newborn Baby Keepsake Gift Box Set",
+        price: 4950,
+        quantity: 1,
+        image: GEN.giftBox,
+      },
+    ],
+    subtotal: 4950,
+    deliveryFee: 350,
+    giftWrapFee: 250,
+    discountAmount: 0,
+    totalAmount: 5550,
+    paymentMethod: "COD",
+    paymentStatus: "pending",
+    orderStatus: "Confirmed",
+    internalNotes: "Confirmed stock availability. Package prepared with ribbon.",
+    createdAt: "2026-08-14T14:20:00Z",
+    updatedAt: "2026-08-14T16:00:00Z",
+  },
+  {
+    orderId: "MIKI-2026-1003",
+    customerInfo: {
+      name: "Narmada Silva",
+      phone: "0765554321",
+      email: "narmada.silva@yahoo.com",
+      address: "88, Peradeniya Road, Kandy",
+      district: "Kandy",
+    },
+    items: [
+      {
+        productId: "miki-prod-002",
+        name: "Personalized Baby Name & Birth Stats Cloud Wall Art",
+        price: 3500,
+        quantity: 1,
+        image: "/images/663262977_122186256680624717_8842992806300414558_n.jpg",
+        personalizationDetails: "Baby Name: Liam | DOB: 10 Aug 2026 | Weight: 3.1kg",
+      },
+    ],
+    subtotal: 3500,
+    deliveryFee: 450,
+    discountAmount: 200,
+    totalAmount: 3750,
+    paymentMethod: "COD",
+    paymentStatus: "collected",
+    orderStatus: "Completed",
+    createdAt: "2026-08-12T11:00:00Z",
+    updatedAt: "2026-08-13T17:30:00Z",
+  },
+];
+
+export const INITIAL_PROMOTIONS: Promotion[] = [
+  {
+    promoId: "promo-001",
+    code: "MIKIBABY10",
+    title: "10% Welcome Discount",
+    discountType: "percentage",
+    discountValue: 10,
+    startDate: "2026-08-01",
+    endDate: "2026-12-31",
+    isActive: true,
+  },
+  {
+    promoId: "promo-002",
+    code: "WALLART500",
+    title: "Rs. 500 Off Nursery Wall Art Sets",
+    discountType: "fixed",
+    discountValue: 500,
+    startDate: "2026-08-01",
+    endDate: "2026-09-30",
+    isActive: true,
+  },
+];
+
+export const INITIAL_REVIEWS: Review[] = [
+  {
+    id: "rev-1",
+    author: "Shenali K.",
+    rating: 5,
+    comment: "The Safari animal wall art set for my baby boy's nursery is absolutely stunning! High quality framing and super fast COD delivery.",
+    date: "10 Aug 2026",
+    verified: true,
+    productName: "Safari Jungle Animals Nursery Wall Art",
+  },
+  {
+    id: "rev-2",
+    author: "Tharindu M.",
+    rating: 5,
+    comment: "Ordered the personalized birth stats plaque for my niece. Everyone at the baby shower loved it. 100% recommended!",
+    date: "05 Aug 2026",
+    verified: true,
+    productName: "Personalized Baby Name Cloud Wall Art",
+  },
+  {
+    id: "rev-3",
+    author: "Rashmi Wickramasinghe",
+    rating: 5,
+    comment: "Very polite WhatsApp response and very careful packaging. Will definitely buy again from MIKI!",
+    date: "01 Aug 2026",
+    verified: true,
+  },
+];
+
+export const INITIAL_ADMIN_USERS: AdminUser[] = [
+  {
+    uid: "admin-owner-1",
+    name: "Miky Owner (Super Admin)",
+    email: "owner@mikibaby.lk",
+    role: "owner",
+    assignedPermissions: {
+      orders: true,
+      products: true,
+      inventory: true,
+      customers: true,
+      analytics: true,
+      settings: true,
+    },
+    isActive: true,
+    createdAt: "2026-08-01T00:00:00Z",
+  },
+  {
+    uid: "admin-staff-1",
+    name: "Kavindi (Staff Operator)",
+    email: "staff@mikibaby.lk",
+    role: "staff",
+    assignedPermissions: {
+      orders: true,
+      products: false,
+      inventory: true,
+      customers: false,
+      analytics: false,
+      settings: false,
+    },
+    isActive: true,
+    createdAt: "2026-08-05T00:00:00Z",
+  },
+];
+
+export const INITIAL_MESSAGES = [
+  {
+    id: "msg-001",
+    name: "Test User",
+    email: "test@example.com",
+    phone: "123456789",
+    subject: "Test Subject",
+    message: "Hello test",
+    status: "unread" as const,
+    createdAt: "2026-08-07T22:54:00Z",
+  },
+  {
+    id: "msg-002",
+    name: "H.M. Wenuri Sanjana Herath",
+    email: "wenuri.herath@gmail.com",
+    phone: "0771234567",
+    subject: "order inquery",
+    message: "Hello test message",
+    status: "unread" as const,
+    createdAt: "2026-08-07T21:29:00Z",
+  },
+  {
+    id: "msg-003",
+    name: "Wenuri Sanjana",
+    email: "wenuri.s@gmail.com",
+    phone: "0767568100",
+    subject: "order inquiry",
+    message: "test",
+    status: "read" as const,
+    createdAt: "2026-08-06T20:31:00Z",
+  },
+  {
+    id: "msg-004",
+    name: "wenuri",
+    email: "wenuris2004@gmail.com",
+    phone: "0767568100",
+    subject: "Custom baby room frame request",
+    message: "Can I customize the baby name and birth date with gold foil print?",
+    status: "read" as const,
+    createdAt: "2026-08-05T14:15:00Z",
+  },
+];
+
+
