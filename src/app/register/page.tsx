@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Sparkles, ShoppingBag, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/storefront/Navbar";
 import { Footer } from "@/components/storefront/Footer";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
@@ -12,10 +12,10 @@ import { useCart } from "@/context/CartContext";
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/checkout";
+  const { cart } = useCart();
+  const redirectUrl = searchParams.get("redirect") || (cart.length > 0 ? "/checkout" : "/account");
 
   const { register, customer } = useCustomerAuth();
-  const { cart } = useCart();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,58 +32,24 @@ function RegisterForm() {
     }
   }, [customer, redirectUrl, router]);
 
-  // Rule: You cannot create an account without an order/cart items
-  const hasOrderInCart = cart.length > 0 || typeof window !== "undefined" && localStorage.getItem("miki_draft_checkout");
-
-  if (!hasOrderInCart && !customer) {
-    return (
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 p-8 sm:p-10 space-y-6 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200/60 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-          <ShoppingBag className="w-7 h-7" />
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-heading">
-            Order Required
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-            You cannot create an account without an order. To create an account, please select items from our nursery wall art & gifts collection and proceed to checkout.
-          </p>
-        </div>
-
-        <div className="space-y-3 pt-2">
-          <Link
-            href="/shop"
-            className="w-full bg-slate-900 hover:bg-black text-white font-extrabold text-xs uppercase tracking-wider py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
-          >
-            <span>BROWSE SHOP & ORDER</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-
-          <Link
-            href="/login"
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3.5 rounded-2xl flex items-center justify-center gap-1 transition-colors"
-          >
-            Already have an account? Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
 
-    if (!name.trim()) {
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = phone.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanName) {
       setErrorMessage("Please enter your full name.");
       return;
     }
-    if (!email.trim()) {
+    if (!cleanEmail) {
       setErrorMessage("Please enter your email address.");
       return;
     }
-    if (!password || password.length < 6) {
+    if (!cleanPassword || cleanPassword.length < 6) {
       setErrorMessage("Password must be at least 6 characters long.");
       return;
     }
@@ -91,11 +57,15 @@ function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const result = await register({ name, email, phone, password });
+      const result = await register({
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        password: cleanPassword,
+      });
       setIsLoading(false);
 
       if (result.success) {
-        // Redirect directly to checkout to complete order
         router.push(redirectUrl);
       } else {
         setErrorMessage(result.message);
@@ -108,7 +78,7 @@ function RegisterForm() {
 
   return (
     <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 p-7 sm:p-9 space-y-6">
-      {/* Top Sparkle Star Icon (Matching Screenshot 3) */}
+      {/* Top Sparkle Star Icon */}
       <div className="flex justify-center">
         <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-amber-400 shadow-md hover:scale-105 transition-transform">
           <Sparkles className="w-6 h-6 text-amber-400 fill-amber-400" />
@@ -118,10 +88,10 @@ function RegisterForm() {
       {/* Heading */}
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-heading">
-          Create Account with Order
+          Create Account
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
-          Sign up to confirm your order, track shipments, and manage your delivery details.
+          Sign up once to log in seamlessly from any device, track your orders, and save your delivery details.
         </p>
       </div>
 
@@ -149,6 +119,7 @@ function RegisterForm() {
                 if (errorMessage) setErrorMessage("");
               }}
               placeholder="John Doe"
+              autoComplete="name"
               className="w-full bg-white border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 rounded-2xl py-3.5 pl-11 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
             <User className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -170,6 +141,10 @@ function RegisterForm() {
                 if (errorMessage) setErrorMessage("");
               }}
               placeholder="you@example.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="email"
+              spellCheck={false}
               className="w-full bg-white border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 rounded-2xl py-3.5 pl-11 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
             <Mail className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -190,6 +165,7 @@ function RegisterForm() {
                 if (errorMessage) setErrorMessage("");
               }}
               placeholder="077 123 4567"
+              autoComplete="tel"
               className="w-full bg-white border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 rounded-2xl py-3.5 pl-11 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
             <Phone className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -212,13 +188,17 @@ function RegisterForm() {
                 if (errorMessage) setErrorMessage("");
               }}
               placeholder="••••••••"
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="new-password"
+              spellCheck={false}
               className="w-full bg-white border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 rounded-2xl py-3.5 pl-11 pr-11 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
             <Lock className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-slate-400 hover:text-slate-600 absolute right-4 top-1/2 -translate-y-1/2 p-1"
+              className="text-slate-400 hover:text-slate-600 absolute right-4 top-1/2 -translate-y-1/2 p-1 cursor-pointer"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -231,7 +211,7 @@ function RegisterForm() {
           disabled={isLoading}
           className="w-full bg-slate-900 hover:bg-black text-white font-extrabold text-xs tracking-wider uppercase py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-98 cursor-pointer disabled:opacity-70 mt-2"
         >
-          <span>{isLoading ? "CREATING ACCOUNT..." : "REGISTER & CONTINUE ORDER"}</span>
+          <span>{isLoading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </form>
