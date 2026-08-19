@@ -452,6 +452,7 @@ export default function AdminStaffPage() {
   const [customerSearch, setCustomerSearch] = useState("");
 
   useEffect(() => {
+    // Load from local storage immediately for fast render
     try {
       const stored = localStorage.getItem("miki_customer_users");
       if (stored) {
@@ -461,6 +462,19 @@ export default function AdminStaffPage() {
         }
       }
     } catch {}
+
+    // Fetch live customer list across all devices from server API
+    fetch("/api/auth/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.users)) {
+          setCustomers(data.users);
+          try {
+            localStorage.setItem("miki_customer_users", JSON.stringify(data.users));
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
   if (!adminUser) return null;

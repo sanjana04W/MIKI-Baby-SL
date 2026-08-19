@@ -13,10 +13,10 @@ export interface CustomerToastState {
 interface CustomerAuthContextType {
   customer: CustomerUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => { success: boolean; message: string; user?: CustomerUser };
-  register: (data: { name: string; email: string; phone: string; password: string }) => { success: boolean; message: string; user?: CustomerUser };
+  login: (email: string, password: string) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
+  register: (data: { name: string; email: string; phone: string; password: string; address?: string; district?: string }) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
   logout: () => void;
-  updateProfile: (updated: Partial<CustomerUser>) => void;
+  updateProfile: (updated: Partial<CustomerUser>) => Promise<void>;
   toast: CustomerToastState | null;
   hideToast: () => void;
   showToast: (type: "success" | "error", title: string, message: string) => void;
@@ -25,7 +25,7 @@ interface CustomerAuthContextType {
 const USERS_STORAGE_KEY = "miki_customer_users";
 const SESSION_STORAGE_KEY = "miki_customer_session";
 
-// Pre-seeded demo customer accounts
+// Pre-seeded demo customer accounts for fallback
 const INITIAL_USERS: CustomerUser[] = [
   {
     id: "cust-wenuri-001",
@@ -45,7 +45,7 @@ const INITIAL_USERS: CustomerUser[] = [
     password: "password123",
     address: "No. 12, Kandy Road, Kiribathgoda",
     district: "Gampaha",
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-08-01T00:00:00.000Z",
   },
 ];
 
@@ -56,19 +56,19 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<CustomerToastState | null>(null);
 
-  // Initialize from localStorage
+  // Initialize from localStorage and fetch server users
   useEffect(() => {
     try {
-      // Ensure initial users list is seeded
-      const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-      if (!storedUsers) {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
-      }
-
-      // Check for active customer session
+      // Check for active customer session on this device
       const activeSession = localStorage.getItem(SESSION_STORAGE_KEY);
       if (activeSession) {
         setCustomer(JSON.parse(activeSession));
+      }
+
+      // Seed local storage with default users if not set
+      const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+      if (!storedUsers) {
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
       }
     } catch {
       // Fallback
@@ -85,7 +85,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setToast(null);
   };
 
-  const getUsersList = (): CustomerUser[] => {
+  const getLocalUsersList = (): CustomerUser[] => {
     try {
       const stored = localStorage.getItem(USERS_STORAGE_KEY);
       if (stored) return JSON.parse(stored);
@@ -93,41 +93,89 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return INITIAL_USERS;
   };
 
-  const login = (email: string, password: string) => {
+  const saveLocalUsersList = (users: CustomerUser[]) => {
+    try {
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    } catch {}
+  };
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; message: string; user?: CustomerUser }> => {
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
 
-    const users = getUsersList();
-    const foundUser = users.find((u) => u.email.toLowerCase() === trimmedEmail);
-
-    if (!foundUser) {
-      const errorMsg = "Account not found with this email. If you do not have an account, you must create an account first.";
-      showToast("error", "ACCOUNT NOT FOUND", errorMsg);
-      return { success: false, message: errorMsg };
-    }
-
-    if (foundUser.password && foundUser.password !== trimmedPassword) {
-      const errorMsg = "Incorrect password. Please check your password and try again.";
+    if (!trimmedEmail || !trimmedPassword) {
+      const errorMsg = "Please enter both email and password.";
       showToast("error", "LOGIN FAILED", errorMsg);
       return { success: false, message: errorMsg };
     }
 
-    // Login successful
-    const sessionUser = { ...foundUser };
-    delete sessionUser.password;
-
-    setCustomer(sessionUser);
     try {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
-    } catch {}
+      // Authenticate against centralized server API (cross-device)
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, password: trimmedPassword }),
+      });
 
-    const successMsg = `Welcome back, ${sessionUser.name}! Logged in successfully. 👏`;
-    showToast("success", "LOGIN SUCCESSFUL", successMsg);
+      const data = await res.json();
 
-    return { success: true, message: successMsg, user: sessionUser };
+      if (res.ok && data.success && data.user) {
+        const sessionUser: CustomerUser = data.user;
+        setCustomer(sessionUser);
+
+        try {
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+        } catch {}
+
+        const successMsg = data.message || `Welcome back, ${sessionUser.name}! Logged in successfully. 👏`;
+        showToast("success", "LOGIN SUCCESSFUL", successMsg);
+        return { success: true, message: successMsg, user: sessionUser };
+      } else {
+        const errorMsg = data.message || "Invalid email or password. Please check and try again.";
+        showToast("error", "LOGIN FAILED", errorMsg);
+        return { success: false, message: errorMsg };
+      }
+    } catch (networkError) {
+      console.warn("Server auth unreachable, attempting local fallback:", networkError);
+
+      // Offline / network fallback
+      const localUsers = getLocalUsersList();
+      const foundUser = localUsers.find((u) => u.email.toLowerCase() === trimmedEmail);
+
+      if (!foundUser) {
+        const errorMsg = "Account not found with this email. If you do not have an account, you must create an account first.";
+        showToast("error", "ACCOUNT NOT FOUND", errorMsg);
+        return { success: false, message: errorMsg };
+      }
+
+      if (foundUser.password && foundUser.password !== trimmedPassword) {
+        const errorMsg = "Incorrect password. Please check your password and try again.";
+        showToast("error", "LOGIN FAILED", errorMsg);
+        return { success: false, message: errorMsg };
+      }
+
+      const sessionUser = { ...foundUser };
+      delete sessionUser.password;
+
+      setCustomer(sessionUser);
+      try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+      } catch {}
+
+      const successMsg = `Welcome back, ${sessionUser.name}! Logged in successfully. 👏`;
+      showToast("success", "LOGIN SUCCESSFUL", successMsg);
+      return { success: true, message: successMsg, user: sessionUser };
+    }
   };
 
-  const register = (data: { name: string; email: string; phone: string; password: string }) => {
+  const register = async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    address?: string;
+    district?: string;
+  }): Promise<{ success: boolean; message: string; user?: CustomerUser }> => {
     const trimmedEmail = data.email.trim().toLowerCase();
     const trimmedName = data.name.trim();
     const trimmedPhone = data.phone.trim();
@@ -145,44 +193,78 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return { success: false, message: errorMsg };
     }
 
-    const users = getUsersList();
-    const existing = users.find((u) => u.email.toLowerCase() === trimmedEmail);
+    try {
+      // Register with centralized server database (cross-device)
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          phone: trimmedPhone,
+          password: trimmedPassword,
+          address: data.address || "",
+          district: data.district || "Colombo",
+        }),
+      });
 
-    if (existing) {
-      const errorMsg = "An account with this email already exists. Please sign in.";
-      showToast("error", "ACCOUNT EXISTS", errorMsg);
-      return { success: false, message: errorMsg };
+      const resData = await res.json();
+
+      if (res.ok && resData.success && resData.user) {
+        const sessionUser: CustomerUser = resData.user;
+        setCustomer(sessionUser);
+
+        try {
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+          const localUsers = getLocalUsersList();
+          saveLocalUsersList([...localUsers.filter((u) => u.email.toLowerCase() !== trimmedEmail), sessionUser]);
+        } catch {}
+
+        const successMsg = resData.message || `Welcome to MIKI Baby SL, ${sessionUser.name}! Your account has been created. 🎉`;
+        showToast("success", "ACCOUNT CREATED", successMsg);
+        return { success: true, message: successMsg, user: sessionUser };
+      } else {
+        const errorMsg = resData.message || "Could not complete registration. Please try again.";
+        showToast("error", "REGISTRATION FAILED", errorMsg);
+        return { success: false, message: errorMsg };
+      }
+    } catch (networkError) {
+      console.warn("Server registration unreachable, using local fallback:", networkError);
+
+      const localUsers = getLocalUsersList();
+      const existing = localUsers.find((u) => u.email.toLowerCase() === trimmedEmail);
+
+      if (existing) {
+        const errorMsg = "An account with this email already exists. Please sign in.";
+        showToast("error", "ACCOUNT EXISTS", errorMsg);
+        return { success: false, message: errorMsg };
+      }
+
+      const newUser: CustomerUser = {
+        id: `cust-${Date.now()}`,
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
+        password: trimmedPassword,
+        createdAt: new Date().toISOString(),
+        address: data.address || "",
+        district: data.district || "Colombo",
+      };
+
+      saveLocalUsersList([...localUsers, newUser]);
+
+      const sessionUser = { ...newUser };
+      delete sessionUser.password;
+
+      setCustomer(sessionUser);
+      try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
+      } catch {}
+
+      const successMsg = `Welcome to MIKI Baby SL, ${sessionUser.name}! Your account has been created. 🎉`;
+      showToast("success", "ACCOUNT CREATED", successMsg);
+      return { success: true, message: successMsg, user: sessionUser };
     }
-
-    const newUser: CustomerUser = {
-      id: `cust-${Date.now()}`,
-      name: trimmedName,
-      email: trimmedEmail,
-      phone: trimmedPhone,
-      password: trimmedPassword,
-      createdAt: new Date().toISOString(),
-      address: "",
-      district: "Colombo",
-    };
-
-    const updatedUsers = [...users, newUser];
-    try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-    } catch {}
-
-    // Automatically log in after registration
-    const sessionUser = { ...newUser };
-    delete sessionUser.password;
-
-    setCustomer(sessionUser);
-    try {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionUser));
-    } catch {}
-
-    const successMsg = `Welcome to MIKI Baby SL, ${sessionUser.name}! Your account has been created. 🎉`;
-    showToast("success", "ACCOUNT CREATED", successMsg);
-
-    return { success: true, message: successMsg, user: sessionUser };
   };
 
   const logout = () => {
@@ -193,16 +275,33 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     showToast("success", "SIGNED OUT", "You have been signed out safely. See you soon!");
   };
 
-  const updateProfile = (updated: Partial<CustomerUser>) => {
+  const updateProfile = async (updated: Partial<CustomerUser>) => {
     if (!customer) return;
     const newCustomer = { ...customer, ...updated };
     setCustomer(newCustomer);
 
     try {
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newCustomer));
-      const users = getUsersList().map((u) => (u.id === customer.id ? { ...u, ...updated } : u));
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    } catch {}
+      const localUsers = getLocalUsersList().map((u) =>
+        u.id === customer.id || u.email.toLowerCase() === customer.email.toLowerCase()
+          ? { ...u, ...updated }
+          : u
+      );
+      saveLocalUsersList(localUsers);
+
+      // Sync with centralized server
+      await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: customer.id,
+          email: customer.email,
+          updates: updated,
+        }),
+      });
+    } catch (err) {
+      console.warn("Profile update sync warning:", err);
+    }
 
     showToast("success", "PROFILE UPDATED", "Your profile details have been saved successfully.");
   };

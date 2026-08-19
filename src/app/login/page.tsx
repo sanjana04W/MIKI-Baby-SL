@@ -44,8 +44,8 @@ function LoginForm() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = login(email, password);
+    try {
+      const result = await login(email, password);
       setIsLoading(false);
 
       if (result.success) {
@@ -54,7 +54,10 @@ function LoginForm() {
       } else {
         setErrorMessage(result.message);
       }
-    }, 400);
+    } catch {
+      setIsLoading(false);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+    }
   };
 
   return (

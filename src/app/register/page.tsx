@@ -90,8 +90,8 @@ function RegisterForm() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = register({ name, email, phone, password });
+    try {
+      const result = await register({ name, email, phone, password });
       setIsLoading(false);
 
       if (result.success) {
@@ -100,7 +100,10 @@ function RegisterForm() {
       } else {
         setErrorMessage(result.message);
       }
-    }, 400);
+    } catch {
+      setIsLoading(false);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+    }
   };
 
   return (

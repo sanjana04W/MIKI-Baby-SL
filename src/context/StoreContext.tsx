@@ -78,6 +78,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           localStorage.setItem("miki_orders", JSON.stringify(INITIAL_ORDERS));
         }
 
+        // Fetch centralized orders from server API
+        fetch("/api/orders")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+              setOrders((prev) => {
+                const map = new Map(prev.map((o) => [o.orderId, o]));
+                data.orders.forEach((o: Order) => map.set(o.orderId, o));
+                const merged = Array.from(map.values());
+                try {
+                  localStorage.setItem("miki_orders", JSON.stringify(merged));
+                } catch {}
+                return merged;
+              });
+            }
+          })
+          .catch(() => {});
+
         if (savedPromos) {
           const parsed = JSON.parse(savedPromos);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -252,12 +270,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const updatedOrders = [newOrder, ...currentOrders.filter((o) => o.orderId !== orderId)];
 
-    // 2. Persist immediately to localStorage
+    // 2. Persist immediately to localStorage and Server API
     try {
       localStorage.setItem("miki_orders", JSON.stringify(updatedOrders));
     } catch (e) {
       console.error("Failed to write order to localStorage:", e);
     }
+
+    // Centralized server sync
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder),
+    }).catch((e) => console.warn("Background order sync warning:", e));
 
     // 3. Decrement stock for ordered items
     orderData.items.forEach((item) => {
@@ -348,6 +373,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error(e);
     }
+
+    // Centralized server sync for status
+    fetch("/api/orders", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        orderId,
+        status: newStatus,
+        cancellationReason: reason,
+        internalNotes,
+      }),
+    }).catch((e) => console.warn("Background order status sync warning:", e));
 
     setOrders(updatedOrders);
   };

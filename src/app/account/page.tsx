@@ -117,11 +117,11 @@ export default function AccountPage() {
     }
   };
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setTimeout(() => {
-      updateProfile({
+    try {
+      await updateProfile({
         name: fullName.trim(),
         phone: phoneNumber.trim(),
         address: deliveryAddress.trim(),
@@ -129,7 +129,9 @@ export default function AccountPage() {
       setIsSaving(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    }, 400);
+    } catch {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {
