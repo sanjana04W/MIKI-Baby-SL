@@ -16,11 +16,17 @@ function LoginForm() {
 
   const { login, customer } = useCustomerAuth();
 
-  const [email, setEmail] = useState("");
+  const urlEmail = searchParams.get("email") || "";
+  const [email, setEmail] = useState(urlEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // If email param changes, update email state
+  React.useEffect(() => {
+    if (urlEmail) setEmail(urlEmail);
+  }, [urlEmail]);
 
   // If already logged in, redirect
   React.useEffect(() => {
@@ -91,6 +97,16 @@ function LoginForm() {
       {errorMessage && (
         <div className="bg-rose-50 border border-rose-200/80 rounded-2xl p-4 text-xs font-bold text-rose-600 text-center animate-in fade-in slide-in-from-top-1 space-y-2">
           <p>{errorMessage}</p>
+          {errorMessage.toLowerCase().includes("incorrect password") && (
+            <div className="pt-1">
+              <Link
+                href={`/forgot-password?email=${encodeURIComponent(email)}`}
+                className="inline-block bg-slate-900 hover:bg-black text-white font-extrabold text-[11px] uppercase tracking-wider py-2 px-4 rounded-xl shadow-xs transition-transform active:scale-95"
+              >
+                Reset Forgotten Password →
+              </Link>
+            </div>
+          )}
           {errorMessage.includes("create an account") && (
             <div className="pt-1">
               <Link
@@ -137,13 +153,12 @@ function LoginForm() {
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
               PASSWORD
             </label>
-            <button
-              type="button"
-              onClick={() => alert("Password reset link has been sent to your email (Demo).")}
+            <Link
+              href={`/forgot-password?email=${encodeURIComponent(email)}`}
               className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
             >
               Forgot Password?
-            </button>
+            </Link>
           </div>
           <div className="relative">
             <input

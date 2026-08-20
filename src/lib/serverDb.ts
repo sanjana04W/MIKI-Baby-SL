@@ -115,6 +115,26 @@ export function updateServerUser(id: string, updates: Partial<CustomerUser>): Cu
   return updatedUser;
 }
 
+export function resetServerUserPassword(email: string, newPassword: string): boolean {
+  const users = getServerUsers();
+  const normalized = email.trim().toLowerCase();
+  let found = false;
+
+  const updatedUsers = users.map((u) => {
+    if (u.email.trim().toLowerCase() === normalized) {
+      found = true;
+      return { ...u, password: newPassword.trim() };
+    }
+    return u;
+  });
+
+  if (found) {
+    saveServerUsers(updatedUsers);
+    return true;
+  }
+  return false;
+}
+
 export function getServerOrders(): Order[] {
   try {
     ensureFilesExist();

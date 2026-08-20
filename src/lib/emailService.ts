@@ -74,3 +74,56 @@ export async function sendVerificationOtpEmail({
     };
   }
 }
+
+export async function sendPasswordResetOtpEmail({
+  toEmail,
+  toName,
+  otpCode,
+}: {
+  toEmail: string;
+  toName: string;
+  otpCode: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const messageContent = `Dear ${toName},\n\nYour 6-digit password reset code for MIKI Baby SL is:\n\n👉  ${otpCode}  👈\n\nEnter this code to choose a new password. If you did not request a password reset, please secure your account.\n\nWarm regards,\nMIKI Baby SL Team`;
+
+    const templateParams: Record<string, string | number> = {
+      to_email: toEmail,
+      email: toEmail,
+      user_email: toEmail,
+      reply_to: toEmail,
+      to_name: toName,
+      user_name: toName,
+      name: toName,
+      from_name: "MIKI Baby SL",
+      store_name: "MIKI Baby SL",
+      otp_code: otpCode,
+      verification_code: otpCode,
+      code: otpCode,
+      subject: `Password Reset Code [${otpCode}] - MIKI Baby SL`,
+      message: messageContent,
+    };
+
+    if (EMAILJS_CONFIG.publicKey && EMAILJS_CONFIG.publicKey.trim() !== "") {
+      await emailjs.send(
+        EMAILJS_CONFIG.serviceId,
+        EMAILJS_CONFIG.templateId,
+        templateParams,
+        EMAILJS_CONFIG.publicKey.trim()
+      );
+      return { success: true };
+    } else {
+      console.log(
+        `%c🔑 Password Reset Code: ${otpCode} | Sent to: ${toEmail} (${toName})`,
+        "color: #db2777; font-size: 13px; font-weight: bold;"
+      );
+      return { success: true };
+    }
+  } catch (err: any) {
+    console.warn("Password reset email notice:", err);
+    return {
+      success: false,
+      error: err?.text || err?.message || "Failed to send reset email",
+    };
+  }
+}
