@@ -243,7 +243,7 @@ function ShopContent() {
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {filteredProducts.map((product, idx) => (
-                <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 100}>
+                <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 100} className="h-full">
                   <ProductCard product={product} />
                 </ScrollReveal>
               ))}

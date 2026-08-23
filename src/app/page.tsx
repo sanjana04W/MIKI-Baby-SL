@@ -231,6 +231,7 @@ export default function HomePage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-8 space-y-6">
           <ScrollReveal variant="fade-up" delay={0}>
             <div className="text-center space-y-2">
+              <span className="text-xs font-bold text-miki-pink uppercase tracking-wider">Browse by Category</span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Explore Collections</h2>
               <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
                 Find the perfect wall art pieces, gift sets, and room decor tailored for your baby.
@@ -238,24 +239,34 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
             {categories.map((cat, idx) => (
-              <ScrollReveal key={cat.categoryId} variant="fade-up" delay={idx * 100}>
+              <ScrollReveal key={cat.categoryId} variant="fade-up" delay={idx * 80} className="h-full">
                 <Link
                   href={`/categories/${cat.slug}`}
-                  className="group glass-card p-4 rounded-2xl text-center space-y-3 hover:-translate-y-2 transition-all duration-300 hover:shadow-card block border border-slate-100"
+                  className="group glass-card p-2.5 sm:p-3.5 md:p-4 rounded-2xl text-center flex flex-col justify-between items-center h-full hover:-translate-y-1.5 transition-all duration-300 hover:shadow-card hover:border-miki-pink/40 border border-slate-100 bg-white active:scale-[0.98] cursor-pointer"
                 >
-                  <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-100 mx-auto">
+                  <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-100/80 shadow-xs mb-2 sm:mb-2.5 shrink-0">
                     <Image
                       src={cat.image || "/images/661247360_122186257130624717_6303554255591935628_n.jpg"}
                       alt={cat.name}
                       fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
                       className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                     />
                   </div>
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-miki-rose transition-colors line-clamp-1">
-                    {cat.name}
-                  </h3>
+
+                  <div className="w-full flex-1 flex flex-col justify-between items-center">
+                    <div className="min-h-[2.25rem] sm:min-h-[2.5rem] flex items-center justify-center w-full px-0.5">
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-miki-rose transition-colors line-clamp-2 leading-tight text-center">
+                        {cat.name}
+                      </h3>
+                    </div>
+                    <span className="mt-1 text-[10px] sm:text-xs font-semibold text-miki-pink group-hover:text-miki-rose flex items-center gap-1 transition-transform group-hover:translate-x-0.5">
+                      <span>Explore</span>
+                      <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    </span>
+                  </div>
                 </Link>
               </ScrollReveal>
             ))}
@@ -280,9 +291,9 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {featuredProducts.slice(0, 8).map((product, idx) => (
-              <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 150}>
+              <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 100} className="h-full">
                 <ProductCard product={product} />
               </ScrollReveal>
             ))}
@@ -334,9 +345,9 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {newArrivals.slice(0, 8).map((product, idx) => (
-              <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 150}>
+              <ScrollReveal key={product.productId} variant="scale-up" delay={idx * 100} className="h-full">
                 <ProductCard product={product} />
               </ScrollReveal>
             ))}
