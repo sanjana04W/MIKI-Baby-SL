@@ -148,6 +148,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "basePrice": 4200,
     "salePrice": 3850,
     "images": [
+      "/images/generated/safari_animals_wall_art.jpg",
       "/images/generated/1114fe6d032afd527545be8f36cfc519.jpg",
       "/images/generated/2439affbb43893d2730d10d46ad7a48a.jpg",
       "/images/generated/49e2a58efed7617a8a67a1bfe229581e.jpg"

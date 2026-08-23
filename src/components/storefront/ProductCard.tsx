@@ -3,7 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Eye, Heart, CheckCircle, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, Eye, CheckCircle, AlertTriangle, ArrowRight } from "lucide-react";
 import { Product } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
@@ -14,6 +15,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const router = useRouter();
   const { addToCart } = useCart();
 
   const activePrice = product.salePrice || product.basePrice;
@@ -21,6 +23,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const discountPercent = hasDiscount
     ? Math.round(((product.basePrice - product.salePrice!) / product.basePrice) * 100)
     : 0;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If the click originated from an interactive button or nested link, let that handler process it
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("a")) {
+      return;
+    }
+    trackViewContent({
+      id: product.productId,
+      name: product.name,
+      price: activePrice,
+      category: product.categoryId,
+    });
+    router.push(`/shop/${product.slug}`);
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -51,7 +68,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="group relative glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-card flex flex-col h-full bg-white">
+    <div
+      onClick={handleCardClick}
+      className="group relative glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-card hover:border-miki-pink/40 flex flex-col h-full bg-white cursor-pointer active:scale-[0.98] border border-slate-100"
+    >
       {/* Badges Overlay */}
       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col gap-1 pointer-events-none">
         {hasDiscount && (
@@ -75,18 +95,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <Link
         href={`/shop/${product.slug}`}
         onClick={handleProductClick}
-        className="relative aspect-square w-full bg-slate-50 overflow-hidden flex items-center justify-center p-1 sm:p-2 block"
+        className="relative aspect-square w-full bg-slate-50 overflow-hidden flex items-center justify-center p-1 sm:p-2 block cursor-pointer"
       >
         <Image
           src={product.images[0]}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-1.5 sm:p-2 group-hover:scale-105 transition-transform duration-500"
+          className="object-contain p-1.5 sm:p-2 group-hover:scale-108 transition-transform duration-500 ease-out"
         />
-        <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <span className="bg-white/90 text-slate-800 p-2 sm:p-2.5 rounded-full shadow-lg hover:bg-miki-pink hover:text-white transition-colors">
-            <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+        {/* Quick View Overlay on Hover */}
+        <div className="absolute inset-0 bg-slate-900/15 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+          <span className="bg-white/95 text-slate-800 font-bold text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 group-hover:scale-105 transition-transform">
+            <Eye className="w-3.5 h-3.5 text-miki-pink" />
+            <span>View Details</span>
           </span>
         </div>
       </Link>
@@ -111,8 +133,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             )}
           </div>
 
-          <Link href={`/shop/${product.slug}`} onClick={handleProductClick}>
-            <h3 className="text-xs sm:text-base font-semibold text-slate-800 line-clamp-2 hover:text-miki-rose transition-colors leading-snug">
+          <Link href={`/shop/${product.slug}`} onClick={handleProductClick} className="block group/link">
+            <h3 className="text-xs sm:text-base font-semibold text-slate-800 line-clamp-2 group-hover/link:text-miki-rose group-hover:text-miki-rose transition-colors leading-snug">
               {product.name}
             </h3>
           </Link>
@@ -134,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             onClick={handleAddToCart}
             disabled={product.stockStatus === "out_of_stock"}
-            className="bg-miki-pink hover:bg-miki-rose disabled:bg-slate-300 text-white p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer shrink-0"
+            className="bg-miki-pink hover:bg-miki-rose disabled:bg-slate-300 text-white p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer shrink-0 z-10"
             title="Add to Cart"
           >
             <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

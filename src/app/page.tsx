@@ -136,34 +136,44 @@ export default function HomePage() {
             <div className="lg:col-span-5 relative">
               <ScrollReveal variant="slide-right" delay={300}>
                 <div className="relative mx-auto max-w-md animate-float-slow">
-                  <div className="relative glass-card rounded-3xl p-4 shadow-2xl space-y-4 transform hover:rotate-1 hover:scale-105 transition-all duration-500">
-                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-inner group">
+                  <Link
+                    href="/shop/watercolor-woodland-safari-wall-art-set-001"
+                    className="group block relative glass-card rounded-3xl p-4 shadow-2xl space-y-4 transform hover:rotate-1 hover:scale-105 transition-all duration-500 cursor-pointer border border-white/60 hover:border-miki-pink/40"
+                    title="View Watercolor Woodland Safari Wall Art Set Details"
+                  >
+                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-inner">
                       <Image
                         src="/images/generated/safari_animals_wall_art.jpg"
                         alt="MIKI Baby Room Wall Art"
                         fill
                         priority
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                       />
-                      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md text-xs font-bold text-slate-800 flex items-center gap-1.5 animate-pulse">
-                        <Sparkles className="w-3.5 h-3.5 text-miki-pink fill-miki-pink" />
+                      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-md text-xs font-bold text-slate-800 flex items-center gap-1.5 group-hover:bg-miki-pink group-hover:text-white transition-colors">
+                        <Sparkles className="w-3.5 h-3.5 text-miki-pink fill-miki-pink group-hover:text-white group-hover:fill-white" />
                         <span>Safari Animals Set of 3</span>
+                      </div>
+                      <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="bg-white/95 text-slate-900 text-xs font-extrabold px-3.5 py-2 rounded-full shadow-xl flex items-center gap-1.5 transform scale-95 group-hover:scale-100 transition-transform">
+                          <span>View Product Details</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-miki-pink" />
+                        </span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between px-2">
                       <div>
                         <p className="text-xs text-slate-500 font-medium">Sri Lanka Best Seller</p>
-                        <p className="text-sm font-bold text-slate-900">Eco Pine Framed Prints</p>
+                        <p className="text-sm font-bold text-slate-900 group-hover:text-miki-rose transition-colors">
+                          Watercolor Woodland Safari Set
+                        </p>
                       </div>
-                      <Link
-                        href="/shop/safari-jungle-animals-nursery-wall-art-set-of-3"
-                        className="bg-miki-pink text-white text-xs font-bold px-4 py-2 rounded-xl shadow hover:bg-miki-rose transition-colors"
-                      >
-                        View Details
-                      </Link>
+                      <span className="bg-miki-pink text-white text-xs font-bold px-4 py-2 rounded-xl shadow group-hover:bg-miki-rose transition-colors flex items-center gap-1">
+                        <span>View Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               </ScrollReveal>
             </div>
