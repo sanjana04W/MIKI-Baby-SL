@@ -56,11 +56,14 @@ export function getServerUsers(): CustomerUser[] {
     ensureFilesExist();
     if (fs.existsSync(USERS_FILE)) {
       const data = fs.readFileSync(USERS_FILE, "utf8");
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        // Always trust the file contents — it is the source of truth
-        inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
-        return inMemoryUsers;
+      const cleanData = data.replace(/^\uFEFF/, "").trim();
+      if (cleanData) {
+        const parsed = JSON.parse(cleanData);
+        if (Array.isArray(parsed)) {
+          // Always trust the file contents — it is the source of truth
+          inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
+          return inMemoryUsers;
+        }
       }
     }
   } catch (err) {
@@ -98,12 +101,20 @@ export function createServerUser(user: CustomerUser): CustomerUser {
   return user;
 }
 
-export function updateServerUser(id: string, updates: Partial<CustomerUser>): CustomerUser | null {
+export function findServerUserById(id: string): CustomerUser | undefined {
+  const users = getServerUsers();
+  return users.find((u) => u.id === id);
+}
+
+export function updateServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser | null {
   const users = getServerUsers();
   let updatedUser: CustomerUser | null = null;
+  const targetEmail = (fallbackEmail || updates.email || "").trim().toLowerCase();
 
   const updatedUsers = users.map((u) => {
-    if (u.id === id || (updates.email && u.email.trim().toLowerCase() === updates.email.trim().toLowerCase())) {
+    const idMatches = Boolean(id && u.id === id);
+    const emailMatches = Boolean(targetEmail && u.email.trim().toLowerCase() === targetEmail);
+    if (idMatches || emailMatches) {
       updatedUser = { ...u, ...updates };
       return updatedUser;
     }
@@ -141,10 +152,13 @@ export function getServerOrders(): Order[] {
     ensureFilesExist();
     if (fs.existsSync(ORDERS_FILE)) {
       const data = fs.readFileSync(ORDERS_FILE, "utf8");
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        inMemoryOrders = parsed;
-        return parsed;
+      const cleanData = data.replace(/^\uFEFF/, "").trim();
+      if (cleanData) {
+        const parsed = JSON.parse(cleanData);
+        if (Array.isArray(parsed)) {
+          inMemoryOrders = parsed;
+          return parsed;
+        }
       }
     }
   } catch (err) {

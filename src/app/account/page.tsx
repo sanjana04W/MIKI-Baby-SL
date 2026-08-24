@@ -19,14 +19,12 @@ import {
 import { Navbar } from "@/components/storefront/Navbar";
 import { Footer } from "@/components/storefront/Footer";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
-import { useStore } from "@/context/StoreContext";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Order } from "@/types";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { customer, logout, updateProfile, isLoading } = useCustomerAuth();
-  const { orders } = useStore();
+  const { customer, logout, updateProfile, refreshCustomer, isLoading } = useCustomerAuth();
 
   const [activeTab, setActiveTab] = useState<"overview" | "orders" | "settings">("overview");
 
@@ -37,19 +35,45 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Orders fetched directly from server — same on every device
+  const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !customer) {
       router.push("/login");
     }
   }, [customer, isLoading, router]);
 
+  const loadCustomerOrders = React.useCallback((cust: typeof customer) => {
+    if (!cust) return;
+    setOrdersLoading(true);
+    const params = new URLSearchParams();
+    if (cust.email) params.set("email", cust.email);
+    if (cust.phone) params.set("phone", cust.phone);
+    if (cust.id) params.set("customerId", cust.id);
+
+    fetch(`/api/orders?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.orders)) {
+          setMyOrders(data.orders);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setOrdersLoading(false));
+  }, []);
+
   useEffect(() => {
     if (customer) {
       setFullName(customer.name || "");
       setPhoneNumber(customer.phone || "");
       setDeliveryAddress(customer.address || "");
+
+      // Refresh fresh customer data & load their orders
+      loadCustomerOrders(customer);
     }
-  }, [customer]);
+  }, [customer, loadCustomerOrders]);
 
   if (isLoading || !customer) {
     return (
@@ -59,46 +83,7 @@ export default function AccountPage() {
     );
   }
 
-  // Helper to normalize phone digits for flexible matching
-  const normalizePhone = (p?: string) => {
-    if (!p) return "";
-    return p.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
-  };
-
-  // Real orders for this customer (matched by customerId, email, normalized phone, or customer name)
-  const myOrders: Order[] = orders.filter((o) => {
-    // 1. Matched by customerId
-    if (o.customerId && customer.id && o.customerId === customer.id) return true;
-
-    // 2. Matched by email
-    if (
-      o.customerInfo?.email &&
-      customer.email &&
-      o.customerInfo.email.trim().toLowerCase() === customer.email.trim().toLowerCase()
-    ) {
-      return true;
-    }
-
-    // 3. Matched by normalized phone digits
-    const orderPhone = normalizePhone(o.customerInfo?.phone);
-    const custPhone = normalizePhone(customer.phone);
-    if (orderPhone && custPhone && orderPhone === custPhone) {
-      return true;
-    }
-
-    // 4. Matched by customer name
-    if (
-      o.customerInfo?.name &&
-      customer.name &&
-      o.customerInfo.name.trim().toLowerCase() === customer.name.trim().toLowerCase()
-    ) {
-      return true;
-    }
-
-    return false;
-  });
-
-  const totalSpent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const totalSpent = myOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {

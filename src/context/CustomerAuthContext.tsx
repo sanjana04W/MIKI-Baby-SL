@@ -17,6 +17,7 @@ interface CustomerAuthContextType {
   register: (data: { name: string; email: string; phone: string; password: string; address?: string; district?: string }) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
   logout: () => void;
   updateProfile: (updated: Partial<CustomerUser>) => Promise<void>;
+  refreshCustomer: () => Promise<CustomerUser | null>;
   toast: CustomerToastState | null;
   hideToast: () => void;
   showToast: (type: "success" | "error", title: string, message: string) => void;
@@ -62,7 +63,23 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Check for active customer session on this device
       const activeSession = localStorage.getItem(SESSION_STORAGE_KEY);
       if (activeSession) {
-        setCustomer(JSON.parse(activeSession));
+        const parsed = JSON.parse(activeSession);
+        setCustomer(parsed);
+
+        // Fetch fresh server profile to ensure cross-device updates sync automatically
+        if (parsed.email) {
+          fetch(`/api/auth/profile?email=${encodeURIComponent(parsed.email)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success && data.user) {
+                setCustomer(data.user);
+                try {
+                  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data.user));
+                } catch {}
+              }
+            })
+            .catch(() => {});
+        }
       }
 
       // Seed local storage with default users if not set
@@ -275,22 +292,28 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     showToast("success", "SIGNED OUT", "You have been signed out safely. See you soon!");
   };
 
+  const refreshCustomer = async (): Promise<CustomerUser | null> => {
+    if (!customer?.email) return null;
+    try {
+      const res = await fetch(`/api/auth/profile?email=${encodeURIComponent(customer.email)}`);
+      const data = await res.json();
+      if (data.success && data.user) {
+        setCustomer(data.user);
+        try {
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data.user));
+        } catch {}
+        return data.user;
+      }
+    } catch {}
+    return customer;
+  };
+
   const updateProfile = async (updated: Partial<CustomerUser>) => {
     if (!customer) return;
-    const newCustomer = { ...customer, ...updated };
-    setCustomer(newCustomer);
 
     try {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newCustomer));
-      const localUsers = getLocalUsersList().map((u) =>
-        u.id === customer.id || u.email.toLowerCase() === customer.email.toLowerCase()
-          ? { ...u, ...updated }
-          : u
-      );
-      saveLocalUsersList(localUsers);
-
-      // Sync with centralized server
-      await fetch("/api/auth/profile", {
+      // Sync with centralized server first
+      const res = await fetch("/api/auth/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -299,11 +322,30 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
           updates: updated,
         }),
       });
+      const data = await res.json();
+      const finalUser = data.success && data.user ? data.user : { ...customer, ...updated };
+      
+      setCustomer(finalUser);
+      try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(finalUser));
+        const localUsers = getLocalUsersList().map((u) =>
+          u.id === customer.id || u.email.toLowerCase() === customer.email.toLowerCase()
+            ? { ...u, ...updated }
+            : u
+        );
+        saveLocalUsersList(localUsers);
+      } catch {}
+
+      showToast("success", "PROFILE UPDATED", "Your profile details have been saved successfully.");
     } catch (err) {
       console.warn("Profile update sync warning:", err);
+      const fallbackUser = { ...customer, ...updated };
+      setCustomer(fallbackUser);
+      try {
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(fallbackUser));
+      } catch {}
+      showToast("success", "PROFILE UPDATED", "Your profile details have been saved.");
     }
-
-    showToast("success", "PROFILE UPDATED", "Your profile details have been saved successfully.");
   };
 
   return (
@@ -315,6 +357,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         register,
         logout,
         updateProfile,
+        refreshCustomer,
         toast,
         hideToast,
         showToast,

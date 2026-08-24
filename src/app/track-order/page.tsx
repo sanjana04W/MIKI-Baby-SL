@@ -25,16 +25,32 @@ export default function TrackOrderPage() {
   const [searchedOrder, setSearchedOrder] = useState<Order | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleTrack = (e: React.FormEvent) => {
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchInput.trim()) return;
 
     const term = searchInput.trim().toLowerCase();
-    const found = orders.find(
+    const cleanTerm = term.replace(/\D/g, "");
+
+    let found = orders.find(
       (o) =>
         o.orderId.toLowerCase() === term ||
-        o.customerInfo.phone.replace(/\s+/g, "").includes(term.replace(/\s+/g, ""))
+        (cleanTerm && o.customerInfo.phone.replace(/\D/g, "").includes(cleanTerm))
     );
+
+    if (!found) {
+      try {
+        const res = await fetch(`/api/orders?phone=${encodeURIComponent(term)}&customerId=${encodeURIComponent(term)}`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+          found = data.orders.find(
+            (o: Order) =>
+              o.orderId.toLowerCase() === term ||
+              (cleanTerm && o.customerInfo.phone.replace(/\D/g, "").includes(cleanTerm))
+          ) || data.orders[0];
+        }
+      } catch {}
+    }
 
     setSearchedOrder(found || null);
     setHasSearched(true);

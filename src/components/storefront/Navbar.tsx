@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -180,7 +180,7 @@ export const Navbar: React.FC = () => {
             >
               {customer ? (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-miki-pink text-white font-extrabold text-xs flex items-center justify-center shadow-md shadow-pink-100 border-2 border-white hover:scale-105 transition-all">
-                  {customer.name.charAt(0).toUpperCase()}
+                  {(customer.name || customer.email || "U").charAt(0).toUpperCase()}
                 </div>
               ) : (
                 <div className="p-2.5 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-miki-rose hover:border-miki-pink transition-all">
@@ -287,7 +287,7 @@ export const Navbar: React.FC = () => {
           >
             {customer ? (
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-500 to-miki-pink text-white font-extrabold text-sm flex items-center justify-center shadow-sm shrink-0">
-                {customer.name.charAt(0).toUpperCase()}
+                {(customer.name || customer.email || "U").charAt(0).toUpperCase()}
               </div>
             ) : (
               <div className="w-9 h-9 rounded-full bg-miki-pink/20 text-miki-pink flex items-center justify-center shrink-0">

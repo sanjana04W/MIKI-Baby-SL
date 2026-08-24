@@ -38,7 +38,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, discountAmount, clearCart } = useCart();
   const { createOrder } = useStore();
-  const { customer } = useCustomerAuth();
+  const { customer, updateProfile } = useCustomerAuth();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -247,6 +247,14 @@ export default function CheckoutPage() {
         paymentStatus: "pending",
         orderStatus: "Pending",
       });
+
+      if (customer) {
+        updateProfile({
+          phone: finalPhone || customer.phone,
+          address: address.trim() || customer.address,
+          district: district || customer.district,
+        }).catch(() => {});
+      }
 
       trackPurchase(newOrder.orderId, grandTotal, cart.length);
       setIsOrderPlaced(true);
