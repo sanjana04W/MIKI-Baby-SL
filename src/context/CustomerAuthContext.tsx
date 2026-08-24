@@ -31,10 +31,9 @@ const COOKIE_DAYS     = 30;
 function readCookie(): CustomerUser | null {
   try {
     if (typeof document === "undefined") return null;
-    const match = document.cookie.split("; ").find((c) => c.startsWith(SESSION_COOKIE + "="));
-    if (match) {
-      const val = match.split("=").slice(1).join("=");
-      return JSON.parse(decodeURIComponent(val));
+    const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + SESSION_COOKIE + "=([^;]*)"));
+    if (match && match[1]) {
+      return JSON.parse(decodeURIComponent(match[1]));
     }
   } catch {}
   return null;
@@ -42,6 +41,7 @@ function readCookie(): CustomerUser | null {
 
 function writeCookie(user: CustomerUser) {
   try {
+    if (typeof document === "undefined") return;
     const expires = new Date(Date.now() + COOKIE_DAYS * 864e5).toUTCString();
     document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(JSON.stringify(user))}; expires=${expires}; path=/; SameSite=Lax`;
   } catch {}
@@ -49,21 +49,27 @@ function writeCookie(user: CustomerUser) {
 
 function eraseCookie() {
   try {
-    document.cookie = `${SESSION_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    if (typeof document === "undefined") return;
+    document.cookie = `${SESSION_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+    document.cookie = `${SESSION_COOKIE}=; max-age=0; path=/; SameSite=Lax`;
+    document.cookie = `${SESSION_COOKIE}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    document.cookie = `${SESSION_COOKIE}=; max-age=0; path=/`;
   } catch {}
 }
 
 // ── Session persistence helpers ───────────────────────────────────────────────
-// Write user to BOTH localStorage (fast read on same browser) and a 30-day
-// cookie (survives browser restarts, works across tabs, different browser windows)
 function persistSession(user: CustomerUser) {
-  try { localStorage.setItem(SESSION_LS_KEY, JSON.stringify(user)); } catch {}
+  try {
+    localStorage.setItem(SESSION_LS_KEY, JSON.stringify(user));
+  } catch {}
   writeCookie(user);
 }
 
-// Clear session from localStorage AND cookie
 function clearSession() {
-  try { localStorage.removeItem(SESSION_LS_KEY); } catch {}
+  try {
+    localStorage.removeItem(SESSION_LS_KEY);
+    sessionStorage.clear();
+  } catch {}
   eraseCookie();
 }
 

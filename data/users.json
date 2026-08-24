@@ -8,5 +8,15 @@
     "address": "No. 12, Kandy Road",
     "district": "Gampaha",
     "createdAt": "2026-08-24T14:20:15.118Z"
+  },
+  {
+    "id": "cust-1787582001201",
+    "name": "Kasun Bandara",
+    "email": "kasun.bandara@gmail.com",
+    "phone": "0712345678",
+    "password": "mypassword2026",
+    "address": "No 45 Galle Road",
+    "district": "Colombo",
+    "createdAt": "2026-08-24T14:33:21.201Z"
   }
 ]

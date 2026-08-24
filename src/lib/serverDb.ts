@@ -71,27 +71,42 @@ export function saveServerUsers(users: CustomerUser[]): boolean {
 
 export function findServerUserByEmail(email: string): CustomerUser | undefined {
   const users = getServerUsers();
+  if (!email || !Array.isArray(users)) return undefined;
   const normalized = email.trim().toLowerCase();
-  return users.find((u) => u.email.trim().toLowerCase() === normalized);
+  return users.find((u) => u && typeof u.email === "string" && u.email.trim().toLowerCase() === normalized);
 }
 
 export function createServerUser(user: CustomerUser): CustomerUser {
   const users = getServerUsers();
-  const normalizedEmail = user.email.trim().toLowerCase();
+  const normalizedEmail = (user.email || "").trim().toLowerCase();
   
+  const cleanUser: CustomerUser = {
+    id: user.id || `cust-${Date.now()}`,
+    name: (user.name || "").trim(),
+    email: normalizedEmail,
+    phone: (user.phone || "").trim(),
+    password: (user.password || "").trim(),
+    address: (user.address || "").trim(),
+    district: user.district || "Colombo",
+    createdAt: user.createdAt || new Date().toISOString(),
+  };
+
   // Filter out any existing matching email before inserting
-  const filtered = users.filter((u) => u.email.trim().toLowerCase() !== normalizedEmail);
-  const updated = [...filtered, user];
+  const filtered = users.filter((u) => u && typeof u.email === "string" && u.email.trim().toLowerCase() !== normalizedEmail);
+  const updated = [...filtered, cleanUser];
   saveServerUsers(updated);
-  return user;
+  return cleanUser;
 }
 
 export function updateServerUser(id: string, updates: Partial<CustomerUser>): CustomerUser | null {
   const users = getServerUsers();
   let updatedUser: CustomerUser | null = null;
+  const updateEmail = updates.email ? updates.email.trim().toLowerCase() : undefined;
 
   const updatedUsers = users.map((u) => {
-    if (u.id === id || (updates.email && u.email.trim().toLowerCase() === updates.email.trim().toLowerCase())) {
+    if (!u) return u;
+    const userEmail = typeof u.email === "string" ? u.email.trim().toLowerCase() : "";
+    if (u.id === id || (updateEmail && userEmail === updateEmail)) {
       updatedUser = { ...u, ...updates };
       return updatedUser;
     }
@@ -106,11 +121,12 @@ export function updateServerUser(id: string, updates: Partial<CustomerUser>): Cu
 
 export function resetServerUserPassword(email: string, newPassword: string): boolean {
   const users = getServerUsers();
+  if (!email || !newPassword) return false;
   const normalized = email.trim().toLowerCase();
   let found = false;
 
   const updatedUsers = users.map((u) => {
-    if (u.email.trim().toLowerCase() === normalized) {
+    if (u && typeof u.email === "string" && u.email.trim().toLowerCase() === normalized) {
       found = true;
       return { ...u, password: newPassword.trim() };
     }
