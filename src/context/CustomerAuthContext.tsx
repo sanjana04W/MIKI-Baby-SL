@@ -72,10 +72,35 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
             .then((res) => res.json())
             .then((data) => {
               if (data.success && data.user) {
-                setCustomer(data.user);
+                const mergedUser = { ...parsed, ...data.user };
+                // If client had an address/phone that server was missing, push to server
+                if (parsed.address && (!data.user.address || data.user.address === "")) {
+                  mergedUser.address = parsed.address;
+                  fetch("/api/auth/profile", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      id: parsed.id,
+                      email: parsed.email,
+                      updates: { address: parsed.address, phone: parsed.phone || data.user.phone },
+                    }),
+                  }).catch(() => {});
+                }
+                setCustomer(mergedUser);
                 try {
-                  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(data.user));
+                  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(mergedUser));
                 } catch {}
+              } else {
+                // If user was not yet in server database, upload it now
+                fetch("/api/auth/profile", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    id: parsed.id,
+                    email: parsed.email,
+                    updates: parsed,
+                  }),
+                }).catch(() => {});
               }
             })
             .catch(() => {});

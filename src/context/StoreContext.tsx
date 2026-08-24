@@ -78,21 +78,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           localStorage.setItem("miki_orders", JSON.stringify(INITIAL_ORDERS));
         }
 
-        // Fetch centralized orders from server API
+        // Bi-directional order sync: sync server orders & upload any offline/local orders
         fetch("/api/orders")
           .then((res) => res.json())
           .then((data) => {
-            if (data.success && Array.isArray(data.orders) && data.orders.length > 0) {
-              setOrders((prev) => {
-                const map = new Map(prev.map((o) => [o.orderId, o]));
-                data.orders.forEach((o: Order) => map.set(o.orderId, o));
-                const merged = Array.from(map.values());
-                try {
-                  localStorage.setItem("miki_orders", JSON.stringify(merged));
-                } catch {}
-                return merged;
+            const serverOrders: Order[] = data.success && Array.isArray(data.orders) ? data.orders : [];
+            
+            setOrders((prev) => {
+              const map = new Map<string, Order>();
+              // Add server orders
+              serverOrders.forEach((o) => map.set(o.orderId, o));
+              
+              // Add existing local orders & push missing ones to server
+              prev.forEach((loc) => {
+                if (!map.has(loc.orderId)) {
+                  map.set(loc.orderId, loc);
+                  // Upload to server so other devices get this order immediately
+                  fetch("/api/orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(loc),
+                    keepalive: true,
+                  }).catch(() => {});
+                }
               });
-            }
+
+              const merged = Array.from(map.values()).sort(
+                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              );
+
+              try {
+                localStorage.setItem("miki_orders", JSON.stringify(merged));
+              } catch {}
+              return merged;
+            });
           })
           .catch(() => {});
 

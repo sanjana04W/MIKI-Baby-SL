@@ -106,7 +106,7 @@ export function findServerUserById(id: string): CustomerUser | undefined {
   return users.find((u) => u.id === id);
 }
 
-export function updateServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser | null {
+export function upsertServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser {
   const users = getServerUsers();
   let updatedUser: CustomerUser | null = null;
   const targetEmail = (fallbackEmail || updates.email || "").trim().toLowerCase();
@@ -123,8 +123,29 @@ export function updateServerUser(id: string, updates: Partial<CustomerUser>, fal
 
   if (updatedUser) {
     saveServerUsers(updatedUsers);
+    return updatedUser;
   }
-  return updatedUser;
+
+  // If user does not exist on server, create automatically
+  const newUser: CustomerUser = {
+    id: id || `cust-${Date.now()}`,
+    name: updates.name || "Customer",
+    email: targetEmail || (updates.email ? updates.email.trim().toLowerCase() : "customer@example.com"),
+    phone: updates.phone || "",
+    address: updates.address || "",
+    district: updates.district || "Colombo",
+    createdAt: updates.createdAt || new Date().toISOString(),
+    ...updates,
+  };
+
+  const filtered = users.filter((u) => u.email.trim().toLowerCase() !== targetEmail);
+  const fullList = [...filtered, newUser];
+  saveServerUsers(fullList);
+  return newUser;
+}
+
+export function updateServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser | null {
+  return upsertServerUser(id, updates, fallbackEmail);
 }
 
 export function resetServerUserPassword(email: string, newPassword: string): boolean {

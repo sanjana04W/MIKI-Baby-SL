@@ -18,5 +18,15 @@
     "address": "No. 12, Kandy Road, Kiribathgoda",
     "district": "Gampaha",
     "createdAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "cust-wenu-001",
+    "name": "wenu",
+    "email": "s23010422@ousl.lk",
+    "phone": "0701442569",
+    "password": "password123",
+    "address": "Kadahapola, Horombawa",
+    "district": "Kurunegala",
+    "createdAt": "2026-08-24T04:27:00.000Z"
   }
 ]
