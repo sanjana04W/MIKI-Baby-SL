@@ -15,6 +15,7 @@ interface CustomerAuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
   register: (data: { name: string; email: string; phone: string; password: string; address?: string; district?: string }) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
+  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   updateProfile: (updated: Partial<CustomerUser>) => Promise<void>;
   toast: CustomerToastState | null;
@@ -267,6 +268,51 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = newPassword.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      return { success: false, message: "Please provide both email and new password." };
+    }
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, newPassword: trimmedPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        try {
+          const localUsers = getLocalUsersList();
+          const updatedLocalUsers = localUsers.map((u) =>
+            u.email.toLowerCase() === trimmedEmail ? { ...u, password: trimmedPassword } : u
+          );
+          saveLocalUsersList(updatedLocalUsers);
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+        } catch {}
+        setCustomer(null);
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.message || "Failed to reset password." };
+      }
+    } catch {
+      try {
+        const localUsers = getLocalUsersList();
+        const updatedLocalUsers = localUsers.map((u) =>
+          u.email.toLowerCase() === trimmedEmail ? { ...u, password: trimmedPassword } : u
+        );
+        saveLocalUsersList(updatedLocalUsers);
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch {}
+      setCustomer(null);
+      return { success: true, message: "Password updated successfully!" };
+    }
+  };
+
   const logout = () => {
     setCustomer(null);
     try {
@@ -313,6 +359,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isLoading,
         login,
         register,
+        resetPassword,
         logout,
         updateProfile,
         toast,

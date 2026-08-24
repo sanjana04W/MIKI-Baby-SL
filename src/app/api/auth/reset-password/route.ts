@@ -23,14 +23,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = findServerUserByEmail(trimmedEmail);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "Account not found with this email address." },
-        { status: 404 }
-      );
-    }
-
     const updated = resetServerUserPassword(trimmedEmail, trimmedPassword);
 
     if (!updated) {
@@ -40,14 +32,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const user = findServerUserByEmail(trimmedEmail);
+
     return NextResponse.json({
       success: true,
       message: "Your password has been successfully reset! You can now sign in from any device with your new password.",
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
+        id: user?.id || `cust-${Date.now()}`,
+        name: user?.name || trimmedEmail.split("@")[0],
+        email: trimmedEmail,
+        phone: user?.phone || "",
       },
     });
   } catch (error) {

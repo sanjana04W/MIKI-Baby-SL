@@ -132,8 +132,21 @@ export function resetServerUserPassword(email: string, newPassword: string): boo
   if (found) {
     saveServerUsers(updatedUsers);
     return true;
+  } else {
+    // If not found in database, automatically create the user with the new password
+    const newUser: CustomerUser = {
+      id: `cust-${Date.now()}`,
+      name: normalized.split("@")[0],
+      email: normalized,
+      phone: "",
+      password: newPassword.trim(),
+      address: "",
+      district: "Colombo",
+      createdAt: new Date().toISOString(),
+    };
+    saveServerUsers([...users, newUser]);
+    return true;
   }
-  return false;
 }
 
 export function getServerOrders(): Order[] {

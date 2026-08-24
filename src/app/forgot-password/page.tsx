@@ -23,7 +23,7 @@ function ForgotPasswordForm() {
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get("email") || "";
 
-  const { showToast } = useCustomerAuth();
+  const { showToast, resetPassword } = useCustomerAuth();
 
   // Multi-step state: 1 = Verify Email, 2 = Set New Password, 3 = Success
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -101,23 +101,14 @@ function ForgotPasswordForm() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: cleanEmail,
-          newPassword: cleanPass,
-        }),
-      });
-
-      const data = await res.json();
+      const result = await resetPassword(cleanEmail, cleanPass);
       setIsLoading(false);
 
-      if (res.ok && data.success) {
+      if (result.success) {
         setStep(3);
         showToast("success", "PASSWORD UPDATED", "Your password was updated! You can now sign in from any device.");
       } else {
-        setErrorMessage(data.message || "Failed to update password. Please try again.");
+        setErrorMessage(result.message || "Failed to update password. Please try again.");
       }
     } catch {
       setIsLoading(false);
