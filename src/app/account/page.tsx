@@ -19,12 +19,14 @@ import {
 import { Navbar } from "@/components/storefront/Navbar";
 import { Footer } from "@/components/storefront/Footer";
 import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { useStore } from "@/context/StoreContext";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Order } from "@/types";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { customer, logout, updateProfile, refreshCustomer, isLoading } = useCustomerAuth();
+  const { customer, logout, updateProfile, isLoading } = useCustomerAuth();
+  const { orders } = useStore();
 
   const [activeTab, setActiveTab] = useState<"overview" | "orders" | "settings">("overview");
 
@@ -35,97 +37,19 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Orders fetched directly from server — same on every device
-  const [myOrders, setMyOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-
   useEffect(() => {
     if (!isLoading && !customer) {
       router.push("/login");
     }
   }, [customer, isLoading, router]);
 
-  const loadCustomerOrders = React.useCallback(async (cust: typeof customer) => {
-    if (!cust) return;
-    setOrdersLoading(true);
-
-    try {
-      const params = new URLSearchParams();
-      if (cust.email) params.set("email", cust.email);
-      if (cust.phone) params.set("phone", cust.phone);
-      if (cust.id) params.set("customerId", cust.id);
-
-      const res = await fetch(`/api/orders?${params.toString()}`);
-      const data = await res.json();
-      let serverList: Order[] = [];
-      if (data.success && Array.isArray(data.orders)) {
-        serverList = data.orders;
-      }
-
-      // Check local storage for any offline/recent orders placed in this browser
-      let localList: Order[] = [];
-      try {
-        const stored = localStorage.getItem("miki_orders");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            const normEmail = cust.email?.trim().toLowerCase();
-            const normPhone = cust.phone?.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
-            const normName = cust.name?.trim().toLowerCase();
-
-            localList = parsed.filter((o: Order) => {
-              if (o.customerId && cust.id && o.customerId === cust.id) return true;
-              if (normEmail && o.customerInfo?.email?.trim().toLowerCase() === normEmail) return true;
-              if (normName && o.customerInfo?.name?.trim().toLowerCase() === normName) return true;
-              if (normPhone && o.customerInfo?.phone) {
-                const oPhone = o.customerInfo.phone.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
-                if (oPhone && oPhone === normPhone) return true;
-              }
-              return false;
-            });
-          }
-        }
-      } catch {}
-
-      // Merge server + local
-      const orderMap = new Map<string, Order>();
-      serverList.forEach((o) => orderMap.set(o.orderId, o));
-
-      // If any local order was not yet on the server, upload it immediately
-      for (const loc of localList) {
-        if (!orderMap.has(loc.orderId)) {
-          orderMap.set(loc.orderId, loc);
-          fetch("/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(loc),
-            keepalive: true,
-          }).catch(() => {});
-        }
-      }
-
-      const merged = Array.from(orderMap.values()).sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      setMyOrders(merged);
-    } catch (e) {
-      console.warn("Failed to load orders:", e);
-    } finally {
-      setOrdersLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     if (customer) {
       setFullName(customer.name || "");
       setPhoneNumber(customer.phone || "");
       setDeliveryAddress(customer.address || "");
-
-      // Refresh fresh customer data & load their orders
-      loadCustomerOrders(customer);
     }
-  }, [customer, loadCustomerOrders]);
+  }, [customer]);
 
   if (isLoading || !customer) {
     return (
@@ -135,7 +59,46 @@ export default function AccountPage() {
     );
   }
 
-  const totalSpent = myOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  // Helper to normalize phone digits for flexible matching
+  const normalizePhone = (p?: string) => {
+    if (!p) return "";
+    return p.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
+  };
+
+  // Real orders for this customer (matched by customerId, email, normalized phone, or customer name)
+  const myOrders: Order[] = orders.filter((o) => {
+    // 1. Matched by customerId
+    if (o.customerId && customer.id && o.customerId === customer.id) return true;
+
+    // 2. Matched by email
+    if (
+      o.customerInfo?.email &&
+      customer.email &&
+      o.customerInfo.email.trim().toLowerCase() === customer.email.trim().toLowerCase()
+    ) {
+      return true;
+    }
+
+    // 3. Matched by normalized phone digits
+    const orderPhone = normalizePhone(o.customerInfo?.phone);
+    const custPhone = normalizePhone(customer.phone);
+    if (orderPhone && custPhone && orderPhone === custPhone) {
+      return true;
+    }
+
+    // 4. Matched by customer name
+    if (
+      o.customerInfo?.name &&
+      customer.name &&
+      o.customerInfo.name.trim().toLowerCase() === customer.name.trim().toLowerCase()
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+
+  const totalSpent = myOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -216,10 +179,7 @@ export default function AccountPage() {
               {/* Overview Tab */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveTab("overview");
-                  loadCustomerOrders(customer);
-                }}
+                onClick={() => setActiveTab("overview")}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "overview"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"
@@ -236,10 +196,7 @@ export default function AccountPage() {
               {/* Order History Tab */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveTab("orders");
-                  loadCustomerOrders(customer);
-                }}
+                onClick={() => setActiveTab("orders")}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "orders"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"
@@ -261,10 +218,7 @@ export default function AccountPage() {
               {/* Settings Tab */}
               <button
                 type="button"
-                onClick={() => {
-                  setActiveTab("settings");
-                  refreshCustomer();
-                }}
+                onClick={() => setActiveTab("settings")}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "settings"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"

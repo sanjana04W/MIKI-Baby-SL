@@ -38,7 +38,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, discountAmount, clearCart } = useCart();
   const { createOrder } = useStore();
-  const { customer, updateProfile } = useCustomerAuth();
+  const { customer } = useCustomerAuth();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -201,7 +201,7 @@ export default function CheckoutPage() {
   };
 
   // Step 2: Finalize Order Creation (after OTP verification or fallback)
-  const finalizeOrder = async () => {
+  const finalizeOrder = () => {
     if (isSubmitting || isVerifying) return; // prevent double-call
     setIsVerifying(true);
     setIsSubmitting(true);
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
         customer?.email ||
         `${finalName.toLowerCase().replace(/\s+/g, "")}@customer.lk`;
 
-      const newOrder = await createOrder({
+      const newOrder = createOrder({
         customerId: customer?.id || undefined,
         customerInfo: {
           name: finalName,
@@ -247,14 +247,6 @@ export default function CheckoutPage() {
         paymentStatus: "pending",
         orderStatus: "Pending",
       });
-
-      if (customer) {
-        await updateProfile({
-          phone: finalPhone || customer.phone,
-          address: address.trim() || customer.address,
-          district: district || customer.district,
-        }).catch(() => {});
-      }
 
       trackPurchase(newOrder.orderId, grandTotal, cart.length);
       setIsOrderPlaced(true);

@@ -56,14 +56,11 @@ export function getServerUsers(): CustomerUser[] {
     ensureFilesExist();
     if (fs.existsSync(USERS_FILE)) {
       const data = fs.readFileSync(USERS_FILE, "utf8");
-      const cleanData = data.replace(/^\uFEFF/, "").trim();
-      if (cleanData) {
-        const parsed = JSON.parse(cleanData);
-        if (Array.isArray(parsed)) {
-          // Always trust the file contents — it is the source of truth
-          inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
-          return inMemoryUsers;
-        }
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        // Always trust the file contents — it is the source of truth
+        inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
+        return inMemoryUsers;
       }
     }
   } catch (err) {
@@ -101,20 +98,12 @@ export function createServerUser(user: CustomerUser): CustomerUser {
   return user;
 }
 
-export function findServerUserById(id: string): CustomerUser | undefined {
-  const users = getServerUsers();
-  return users.find((u) => u.id === id);
-}
-
-export function upsertServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser {
+export function updateServerUser(id: string, updates: Partial<CustomerUser>): CustomerUser | null {
   const users = getServerUsers();
   let updatedUser: CustomerUser | null = null;
-  const targetEmail = (fallbackEmail || updates.email || "").trim().toLowerCase();
 
   const updatedUsers = users.map((u) => {
-    const idMatches = Boolean(id && u.id === id);
-    const emailMatches = Boolean(targetEmail && u.email.trim().toLowerCase() === targetEmail);
-    if (idMatches || emailMatches) {
+    if (u.id === id || (updates.email && u.email.trim().toLowerCase() === updates.email.trim().toLowerCase())) {
       updatedUser = { ...u, ...updates };
       return updatedUser;
     }
@@ -123,29 +112,8 @@ export function upsertServerUser(id: string, updates: Partial<CustomerUser>, fal
 
   if (updatedUser) {
     saveServerUsers(updatedUsers);
-    return updatedUser;
   }
-
-  // If user does not exist on server, create automatically
-  const newUser: CustomerUser = {
-    id: id || `cust-${Date.now()}`,
-    name: updates.name || "Customer",
-    email: targetEmail || (updates.email ? updates.email.trim().toLowerCase() : "customer@example.com"),
-    phone: updates.phone || "",
-    address: updates.address || "",
-    district: updates.district || "Colombo",
-    createdAt: updates.createdAt || new Date().toISOString(),
-    ...updates,
-  };
-
-  const filtered = users.filter((u) => u.email.trim().toLowerCase() !== targetEmail);
-  const fullList = [...filtered, newUser];
-  saveServerUsers(fullList);
-  return newUser;
-}
-
-export function updateServerUser(id: string, updates: Partial<CustomerUser>, fallbackEmail?: string): CustomerUser | null {
-  return upsertServerUser(id, updates, fallbackEmail);
+  return updatedUser;
 }
 
 export function resetServerUserPassword(email: string, newPassword: string): boolean {
@@ -173,13 +141,10 @@ export function getServerOrders(): Order[] {
     ensureFilesExist();
     if (fs.existsSync(ORDERS_FILE)) {
       const data = fs.readFileSync(ORDERS_FILE, "utf8");
-      const cleanData = data.replace(/^\uFEFF/, "").trim();
-      if (cleanData) {
-        const parsed = JSON.parse(cleanData);
-        if (Array.isArray(parsed)) {
-          inMemoryOrders = parsed;
-          return parsed;
-        }
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) {
+        inMemoryOrders = parsed;
+        return parsed;
       }
     }
   } catch (err) {

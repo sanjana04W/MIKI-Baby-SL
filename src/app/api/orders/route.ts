@@ -7,35 +7,16 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const customerId = searchParams.get("customerId");
     const email = searchParams.get("email");
-    const phone = searchParams.get("phone");
 
     let orders = getServerOrders();
 
-    if (customerId || email || phone) {
-      const normalizedEmail = email ? email.trim().toLowerCase() : "";
-      const normalizedPhone = phone ? phone.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "") : "";
-
-      orders = orders.filter((o) => {
-        // Match by customerId
-        if (customerId && o.customerId && o.customerId === customerId) return true;
-
-        // Match by email
-        if (
-          normalizedEmail &&
-          o.customerInfo?.email &&
-          o.customerInfo.email.trim().toLowerCase() === normalizedEmail
-        ) {
-          return true;
-        }
-
-        // Match by normalized phone
-        if (normalizedPhone && o.customerInfo?.phone) {
-          const oPhone = o.customerInfo.phone.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
-          if (oPhone && oPhone === normalizedPhone) return true;
-        }
-
-        return false;
-      });
+    if (customerId) {
+      orders = orders.filter((o) => o.customerId === customerId);
+    } else if (email) {
+      const normalizedEmail = email.trim().toLowerCase();
+      orders = orders.filter(
+        (o) => o.customerInfo?.email?.trim().toLowerCase() === normalizedEmail
+      );
     }
 
     return NextResponse.json({

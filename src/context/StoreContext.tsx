@@ -20,7 +20,7 @@ interface StoreContextType {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   deleteProduct: (productId: string) => void;
   adjustStock: (productId: string, newStock: number) => void;
-  createOrder: (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">) => Promise<Order>;
+  createOrder: (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus, reason?: string, internalNotes?: string) => void;
   addPromotion: (promo: Omit<Promotion, "promoId">) => void;
   togglePromotion: (promoId: string) => void;
@@ -78,40 +78,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           localStorage.setItem("miki_orders", JSON.stringify(INITIAL_ORDERS));
         }
 
-        // Bi-directional order sync: sync server orders & upload any offline/local orders
+        // Fetch centralized orders from server API
         fetch("/api/orders")
           .then((res) => res.json())
           .then((data) => {
-            const serverOrders: Order[] = data.success && Array.isArray(data.orders) ? data.orders : [];
-            
-            setOrders((prev) => {
-              const map = new Map<string, Order>();
-              // Add server orders
-              serverOrders.forEach((o) => map.set(o.orderId, o));
-              
-              // Add existing local orders & push missing ones to server
-              prev.forEach((loc) => {
-                if (!map.has(loc.orderId)) {
-                  map.set(loc.orderId, loc);
-                  // Upload to server so other devices get this order immediately
-                  fetch("/api/orders", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(loc),
-                    keepalive: true,
-                  }).catch(() => {});
-                }
+            if (data.success && Array.isArray(data.orders) && data.orders.length > 0) {
+              setOrders((prev) => {
+                const map = new Map(prev.map((o) => [o.orderId, o]));
+                data.orders.forEach((o: Order) => map.set(o.orderId, o));
+                const merged = Array.from(map.values());
+                try {
+                  localStorage.setItem("miki_orders", JSON.stringify(merged));
+                } catch {}
+                return merged;
               });
-
-              const merged = Array.from(map.values()).sort(
-                (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              );
-
-              try {
-                localStorage.setItem("miki_orders", JSON.stringify(merged));
-              } catch {}
-              return merged;
-            });
+            }
           })
           .catch(() => {});
 
@@ -263,7 +244,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateProduct(productId, { stockLevel: newStock });
   };
 
-  const createOrder = async (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">): Promise<Order> => {
+  const createOrder = (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">): Order => {
     const orderId = `MIKI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const now = new Date().toISOString();
 
@@ -289,24 +270,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const updatedOrders = [newOrder, ...currentOrders.filter((o) => o.orderId !== orderId)];
 
-    // 2. Persist immediately to localStorage
+    // 2. Persist immediately to localStorage and Server API
     try {
       localStorage.setItem("miki_orders", JSON.stringify(updatedOrders));
     } catch (e) {
       console.error("Failed to write order to localStorage:", e);
     }
 
-    // 3. Centralized server sync with keepalive and await
-    try {
-      await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newOrder),
-        keepalive: true,
-      });
-    } catch (e) {
-      console.warn("Background order sync warning:", e);
-    }
+    // Centralized server sync
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newOrder),
+    }).catch((e) => console.warn("Background order sync warning:", e));
 
     // 3. Decrement stock for ordered items
     orderData.items.forEach((item) => {
