@@ -130,7 +130,6 @@ function LoginForm() {
           <div className="relative">
             <input
               type="email"
-              name="email"
               required
               value={email}
               onChange={(e) => {
@@ -140,7 +139,7 @@ function LoginForm() {
               placeholder="you@example.com"
               autoCapitalize="none"
               autoCorrect="off"
-              autoComplete="username email"
+              autoComplete="email"
               spellCheck={false}
               className="w-full bg-white border border-slate-200 focus:border-rose-400 focus:ring-2 focus:ring-rose-100 rounded-2xl py-3.5 pl-11 pr-4 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 outline-none transition-all shadow-xs"
             />
@@ -164,7 +163,6 @@ function LoginForm() {
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              name="password"
               required
               value={password}
               onChange={(e) => {

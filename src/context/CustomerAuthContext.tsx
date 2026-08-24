@@ -15,7 +15,6 @@ interface CustomerAuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
   register: (data: { name: string; email: string; phone: string; password: string; address?: string; district?: string }) => Promise<{ success: boolean; message: string; user?: CustomerUser }>;
-  resetPassword: (email: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   updateProfile: (updated: Partial<CustomerUser>) => Promise<void>;
   toast: CustomerToastState | null;
@@ -26,29 +25,8 @@ interface CustomerAuthContextType {
 const USERS_STORAGE_KEY = "miki_customer_users";
 const SESSION_STORAGE_KEY = "miki_customer_session";
 
-// Pre-seeded demo customer accounts for fallback
-const INITIAL_USERS: CustomerUser[] = [
-  {
-    id: "cust-wenuri-001",
-    name: "Wenuris2004",
-    email: "wenuris2004@gmail.com",
-    phone: "+94 77 123 4567",
-    password: "password123",
-    address: "No 123, Main Street, Colombo 05",
-    district: "Colombo",
-    createdAt: "2026-08-01T00:00:00.000Z",
-  },
-  {
-    id: "cust-demo-002",
-    name: "H.M. Wenuri Sanjana Herath",
-    email: "test@example.com",
-    phone: "076 756 8100",
-    password: "password123",
-    address: "No. 12, Kandy Road, Kiribathgoda",
-    district: "Gampaha",
-    createdAt: "2026-08-01T00:00:00.000Z",
-  },
-];
+// Default users list is empty - accounts are created dynamically
+const INITIAL_USERS: CustomerUser[] = [];
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
 
@@ -64,12 +42,6 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const activeSession = localStorage.getItem(SESSION_STORAGE_KEY);
       if (activeSession) {
         setCustomer(JSON.parse(activeSession));
-      }
-
-      // Seed local storage with default users if not set
-      const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-      if (!storedUsers) {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
       }
     } catch {
       // Fallback
@@ -91,7 +63,7 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const stored = localStorage.getItem(USERS_STORAGE_KEY);
       if (stored) return JSON.parse(stored);
     } catch {}
-    return INITIAL_USERS;
+    return [];
   };
 
   const saveLocalUsersList = (users: CustomerUser[]) => {
@@ -268,51 +240,6 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const resetPassword = async (email: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPassword = newPassword.trim();
-
-    if (!trimmedEmail || !trimmedPassword) {
-      return { success: false, message: "Please provide both email and new password." };
-    }
-
-    try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail, newPassword: trimmedPassword }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        try {
-          const localUsers = getLocalUsersList();
-          const updatedLocalUsers = localUsers.map((u) =>
-            u.email.toLowerCase() === trimmedEmail ? { ...u, password: trimmedPassword } : u
-          );
-          saveLocalUsersList(updatedLocalUsers);
-          localStorage.removeItem(SESSION_STORAGE_KEY);
-        } catch {}
-        setCustomer(null);
-        return { success: true, message: data.message };
-      } else {
-        return { success: false, message: data.message || "Failed to reset password." };
-      }
-    } catch {
-      try {
-        const localUsers = getLocalUsersList();
-        const updatedLocalUsers = localUsers.map((u) =>
-          u.email.toLowerCase() === trimmedEmail ? { ...u, password: trimmedPassword } : u
-        );
-        saveLocalUsersList(updatedLocalUsers);
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-      } catch {}
-      setCustomer(null);
-      return { success: true, message: "Password updated successfully!" };
-    }
-  };
-
   const logout = () => {
     setCustomer(null);
     try {
@@ -359,7 +286,6 @@ export const CustomerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         isLoading,
         login,
         register,
-        resetPassword,
         logout,
         updateProfile,
         toast,

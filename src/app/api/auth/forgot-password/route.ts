@@ -17,11 +17,25 @@ export async function POST(request: Request) {
 
     const user = findServerUserByEmail(trimmedEmail);
 
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "No account found with this email. Please check your spelling or create a new account.",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Generate 6-digit verification OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
     return NextResponse.json({
       success: true,
-      message: `Account verified for ${user ? user.name : trimmedEmail}.`,
-      user: { name: user ? user.name : trimmedEmail.split("@")[0], email: trimmedEmail },
-      otpCode: "123456",
+      message: `Verification code generated for ${user.name}.`,
+      user: { name: user.name, email: user.email },
+      otpCode,
     });
   } catch (error) {
     console.error("Forgot password API error:", error);

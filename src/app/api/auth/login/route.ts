@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (foundUser.password && foundUser.password.trim() !== trimmedPassword) {
+    if (foundUser.password && foundUser.password !== trimmedPassword) {
       return NextResponse.json(
         {
           success: false,

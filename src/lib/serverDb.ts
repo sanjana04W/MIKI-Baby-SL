@@ -6,29 +6,8 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 
-// Pre-seeded customer accounts available on all devices
-const INITIAL_SERVER_USERS: CustomerUser[] = [
-  {
-    id: "cust-wenuri-001",
-    name: "Wenuris2004",
-    email: "wenuris2004@gmail.com",
-    phone: "+94 77 123 4567",
-    password: "password123",
-    address: "No 123, Main Street, Colombo 05",
-    district: "Colombo",
-    createdAt: "2026-08-01T00:00:00.000Z",
-  },
-  {
-    id: "cust-demo-002",
-    name: "H.M. Wenuri Sanjana Herath",
-    email: "test@example.com",
-    phone: "076 756 8100",
-    password: "password123",
-    address: "No. 12, Kandy Road, Kiribathgoda",
-    district: "Gampaha",
-    createdAt: "2026-08-01T00:00:00.000Z",
-  },
-];
+// Pre-seeded customer accounts available on all devices (empty by default)
+const INITIAL_SERVER_USERS: CustomerUser[] = [];
 
 // Ensure data directory and files exist
 function ensureFilesExist() {
@@ -37,7 +16,7 @@ function ensureFilesExist() {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     if (!fs.existsSync(USERS_FILE)) {
-      fs.writeFileSync(USERS_FILE, JSON.stringify(INITIAL_SERVER_USERS, null, 2), "utf8");
+      fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), "utf8");
     }
     if (!fs.existsSync(ORDERS_FILE)) {
       fs.writeFileSync(ORDERS_FILE, JSON.stringify([], null, 2), "utf8");
@@ -48,7 +27,7 @@ function ensureFilesExist() {
 }
 
 // In-memory fallback if file system is read-only (e.g. some serverless environments)
-let inMemoryUsers: CustomerUser[] = [...INITIAL_SERVER_USERS];
+let inMemoryUsers: CustomerUser[] = [];
 let inMemoryOrders: Order[] = [];
 
 export function getServerUsers(): CustomerUser[] {
@@ -58,8 +37,7 @@ export function getServerUsers(): CustomerUser[] {
       const data = fs.readFileSync(USERS_FILE, "utf8");
       const parsed = JSON.parse(data);
       if (Array.isArray(parsed)) {
-        // Always trust the file contents — it is the source of truth
-        inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
+        inMemoryUsers = parsed;
         return inMemoryUsers;
       }
     }
@@ -67,6 +45,16 @@ export function getServerUsers(): CustomerUser[] {
     console.error("Error reading users file, using memory fallback:", err);
   }
   return inMemoryUsers;
+}
+
+export function clearAllServerUsers(): void {
+  inMemoryUsers = [];
+  try {
+    ensureFilesExist();
+    fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2), "utf8");
+  } catch (err) {
+    console.error("Error clearing users file:", err);
+  }
 }
 
 export function saveServerUsers(users: CustomerUser[]): boolean {
@@ -132,21 +120,8 @@ export function resetServerUserPassword(email: string, newPassword: string): boo
   if (found) {
     saveServerUsers(updatedUsers);
     return true;
-  } else {
-    // If not found in database, automatically create the user with the new password
-    const newUser: CustomerUser = {
-      id: `cust-${Date.now()}`,
-      name: normalized.split("@")[0],
-      email: normalized,
-      phone: "",
-      password: newPassword.trim(),
-      address: "",
-      district: "Colombo",
-      createdAt: new Date().toISOString(),
-    };
-    saveServerUsers([...users, newUser]);
-    return true;
   }
+  return false;
 }
 
 export function getServerOrders(): Order[] {
