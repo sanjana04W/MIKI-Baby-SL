@@ -23,7 +23,7 @@ function ForgotPasswordForm() {
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get("email") || "";
 
-  const { showToast, resetPassword } = useCustomerAuth();
+  const { showToast } = useCustomerAuth();
 
   // Multi-step state: 1 = Verify Email, 2 = Set New Password, 3 = Success
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -101,18 +101,39 @@ function ForgotPasswordForm() {
     setIsLoading(true);
 
     try {
-      const result = await resetPassword(cleanEmail, cleanPass);
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, newPassword: cleanPass }),
+      });
+
+      const data = await res.json();
       setIsLoading(false);
 
-      if (result.success) {
+      if (res.ok && data.success) {
+        // Clear local session & update cache
+        try {
+          localStorage.removeItem("miki_customer_session");
+          const localUsersStr = localStorage.getItem("miki_customer_users");
+          if (localUsersStr) {
+            const localUsers = JSON.parse(localUsersStr);
+            if (Array.isArray(localUsers)) {
+              const updated = localUsers.map((u: any) =>
+                u.email?.toLowerCase() === cleanEmail ? { ...u, password: cleanPass } : u
+              );
+              localStorage.setItem("miki_customer_users", JSON.stringify(updated));
+            }
+          }
+        } catch {}
+
         setStep(3);
         showToast("success", "PASSWORD UPDATED", "Your password was updated! You can now sign in from any device.");
       } else {
-        setErrorMessage(result.message || "Failed to update password. Please try again.");
+        setErrorMessage(data.message || "Failed to update password. Please try again.");
       }
     } catch {
       setIsLoading(false);
-      setErrorMessage("Network error updating password. Please try again.");
+      setErrorMessage("Could not connect to server. Please check your connection and try again.");
     }
   };
 
@@ -249,6 +270,18 @@ function ForgotPasswordForm() {
       {/* STEP 2: Set New Password Form */}
       {step === 2 && (
         <form onSubmit={handleUpdatePassword} className="space-y-4">
+          {/* Hidden Username for Browser Password Managers */}
+          <input
+            type="text"
+            name="username"
+            value={email}
+            autoComplete="username"
+            readOnly
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+
           {/* New Password */}
           <div className="space-y-1.5 text-left">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
