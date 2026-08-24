@@ -20,7 +20,7 @@ interface StoreContextType {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   deleteProduct: (productId: string) => void;
   adjustStock: (productId: string, newStock: number) => void;
-  createOrder: (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">) => Order;
+  createOrder: (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus, reason?: string, internalNotes?: string) => void;
   addPromotion: (promo: Omit<Promotion, "promoId">) => void;
   togglePromotion: (promoId: string) => void;
@@ -244,7 +244,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateProduct(productId, { stockLevel: newStock });
   };
 
-  const createOrder = (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">): Order => {
+  const createOrder = async (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">): Promise<Order> => {
     const orderId = `MIKI-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const now = new Date().toISOString();
 
@@ -270,19 +270,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const updatedOrders = [newOrder, ...currentOrders.filter((o) => o.orderId !== orderId)];
 
-    // 2. Persist immediately to localStorage and Server API
+    // 2. Persist immediately to localStorage
     try {
       localStorage.setItem("miki_orders", JSON.stringify(updatedOrders));
     } catch (e) {
       console.error("Failed to write order to localStorage:", e);
     }
 
-    // Centralized server sync
-    fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder),
-    }).catch((e) => console.warn("Background order sync warning:", e));
+    // 3. Centralized server sync with keepalive and await
+    try {
+      await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder),
+        keepalive: true,
+      });
+    } catch (e) {
+      console.warn("Background order sync warning:", e);
+    }
 
     // 3. Decrement stock for ordered items
     orderData.items.forEach((item) => {

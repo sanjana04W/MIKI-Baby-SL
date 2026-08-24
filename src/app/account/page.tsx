@@ -45,23 +45,75 @@ export default function AccountPage() {
     }
   }, [customer, isLoading, router]);
 
-  const loadCustomerOrders = React.useCallback((cust: typeof customer) => {
+  const loadCustomerOrders = React.useCallback(async (cust: typeof customer) => {
     if (!cust) return;
     setOrdersLoading(true);
-    const params = new URLSearchParams();
-    if (cust.email) params.set("email", cust.email);
-    if (cust.phone) params.set("phone", cust.phone);
-    if (cust.id) params.set("customerId", cust.id);
 
-    fetch(`/api/orders?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && Array.isArray(data.orders)) {
-          setMyOrders(data.orders);
+    try {
+      const params = new URLSearchParams();
+      if (cust.email) params.set("email", cust.email);
+      if (cust.phone) params.set("phone", cust.phone);
+      if (cust.id) params.set("customerId", cust.id);
+
+      const res = await fetch(`/api/orders?${params.toString()}`);
+      const data = await res.json();
+      let serverList: Order[] = [];
+      if (data.success && Array.isArray(data.orders)) {
+        serverList = data.orders;
+      }
+
+      // Check local storage for any offline/recent orders placed in this browser
+      let localList: Order[] = [];
+      try {
+        const stored = localStorage.getItem("miki_orders");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const normEmail = cust.email?.trim().toLowerCase();
+            const normPhone = cust.phone?.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
+            const normName = cust.name?.trim().toLowerCase();
+
+            localList = parsed.filter((o: Order) => {
+              if (o.customerId && cust.id && o.customerId === cust.id) return true;
+              if (normEmail && o.customerInfo?.email?.trim().toLowerCase() === normEmail) return true;
+              if (normName && o.customerInfo?.name?.trim().toLowerCase() === normName) return true;
+              if (normPhone && o.customerInfo?.phone) {
+                const oPhone = o.customerInfo.phone.replace(/\D/g, "").replace(/^94/, "0").replace(/^0+/, "");
+                if (oPhone && oPhone === normPhone) return true;
+              }
+              return false;
+            });
+          }
         }
-      })
-      .catch(() => {})
-      .finally(() => setOrdersLoading(false));
+      } catch {}
+
+      // Merge server + local
+      const orderMap = new Map<string, Order>();
+      serverList.forEach((o) => orderMap.set(o.orderId, o));
+
+      // If any local order was not yet on the server, upload it immediately
+      for (const loc of localList) {
+        if (!orderMap.has(loc.orderId)) {
+          orderMap.set(loc.orderId, loc);
+          fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(loc),
+            keepalive: true,
+          }).catch(() => {});
+        }
+      }
+
+      const merged = Array.from(orderMap.values()).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setMyOrders(merged);
+    } catch (e) {
+      console.warn("Failed to load orders:", e);
+    } finally {
+      setOrdersLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -164,7 +216,10 @@ export default function AccountPage() {
               {/* Overview Tab */}
               <button
                 type="button"
-                onClick={() => setActiveTab("overview")}
+                onClick={() => {
+                  setActiveTab("overview");
+                  loadCustomerOrders(customer);
+                }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "overview"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"
@@ -181,7 +236,10 @@ export default function AccountPage() {
               {/* Order History Tab */}
               <button
                 type="button"
-                onClick={() => setActiveTab("orders")}
+                onClick={() => {
+                  setActiveTab("orders");
+                  loadCustomerOrders(customer);
+                }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "orders"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"
@@ -203,7 +261,10 @@ export default function AccountPage() {
               {/* Settings Tab */}
               <button
                 type="button"
-                onClick={() => setActiveTab("settings")}
+                onClick={() => {
+                  setActiveTab("settings");
+                  refreshCustomer();
+                }}
                 className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-xs font-bold transition-all text-left relative cursor-pointer ${
                   activeTab === "settings"
                     ? "bg-rose-50 text-miki-pink border border-rose-100"

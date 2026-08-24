@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "orderId": "MIKI-2026-9999",
+    "customerId": "cust-wenuri-001",
+    "customerInfo": {
+      "name": "wenu",
+      "phone": "0701442569",
+      "email": "s23010422@ousl.lk",
+      "address": "Kadahapola, Horombawa",
+      "district": "Kurunegala"
+    },
+    "items": [
+      {
+        "productId": "miki-prod-001",
+        "name": "Art",
+        "price": 3450,
+        "quantity": 1
+      }
+    ],
+    "subtotal": 3450,
+    "deliveryFee": 0,
+    "totalAmount": 3450,
+    "paymentMethod": "COD",
+    "paymentStatus": "pending",
+    "orderStatus": "Pending",
+    "createdAt": "2026-08-24T05:00:48.367Z"
+  }
+]

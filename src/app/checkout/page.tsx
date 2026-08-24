@@ -201,7 +201,7 @@ export default function CheckoutPage() {
   };
 
   // Step 2: Finalize Order Creation (after OTP verification or fallback)
-  const finalizeOrder = () => {
+  const finalizeOrder = async () => {
     if (isSubmitting || isVerifying) return; // prevent double-call
     setIsVerifying(true);
     setIsSubmitting(true);
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
         customer?.email ||
         `${finalName.toLowerCase().replace(/\s+/g, "")}@customer.lk`;
 
-      const newOrder = createOrder({
+      const newOrder = await createOrder({
         customerId: customer?.id || undefined,
         customerInfo: {
           name: finalName,
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
       });
 
       if (customer) {
-        updateProfile({
+        await updateProfile({
           phone: finalPhone || customer.phone,
           address: address.trim() || customer.address,
           district: district || customer.district,
