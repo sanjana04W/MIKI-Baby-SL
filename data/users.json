@@ -28,5 +28,15 @@
     "address": "Kadahapola, Horombawa",
     "district": "Kurunegala",
     "createdAt": "2026-08-24T04:27:00.000Z"
+  },
+  {
+    "id": "cust-1787571521847",
+    "name": "Cross Device User",
+    "email": "crossdevice@test.com",
+    "phone": "0771234567",
+    "password": "mySecretPassword123",
+    "address": "123 Test St",
+    "district": "Colombo",
+    "createdAt": "2026-08-24T11:38:41.847Z"
   }
 ]
