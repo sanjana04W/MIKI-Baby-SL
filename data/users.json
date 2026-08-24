@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "cust-1787581215118",
+    "name": "Wenuri Sanjana",
+    "email": "wenuris2004@gmail.com",
+    "phone": "0767568100",
+    "password": "password123",
+    "address": "No. 12, Kandy Road",
+    "district": "Gampaha",
+    "createdAt": "2026-08-24T14:20:15.118Z"
+  }
+]
