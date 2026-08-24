@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { updateServerUser } from "@/lib/serverDb";
 
+export const dynamic = "force-dynamic";
+
+
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
