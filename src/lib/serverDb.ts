@@ -57,9 +57,10 @@ export function getServerUsers(): CustomerUser[] {
     if (fs.existsSync(USERS_FILE)) {
       const data = fs.readFileSync(USERS_FILE, "utf8");
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryUsers = parsed;
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Always trust the file contents — it is the source of truth
+        inMemoryUsers = parsed.length > 0 ? parsed : INITIAL_SERVER_USERS;
+        return inMemoryUsers;
       }
     }
   } catch (err) {
