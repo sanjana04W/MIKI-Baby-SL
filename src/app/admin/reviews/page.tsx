@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -28,10 +28,11 @@ import { formatDate } from "@/lib/utils";
 export default function AdminReviewsPage() {
   const router = useRouter();
   const { adminUser, hasPermission } = useAdminAuth();
-  const { reviews, updateReviewStatus, deleteReview, refreshReviews } = useStore();
+  const { reviews, products, updateReviewStatus, deleteReview, refreshReviews } = useStore();
 
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [productFilter, setProductFilter] = useState<string>("all");
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -89,6 +90,9 @@ export default function AdminReviewsPage() {
   const filteredReviews = reviews.filter((rev) => {
     // Tab filter
     if (activeTab !== "all" && rev.status !== activeTab) return false;
+
+    // Product filter
+    if (productFilter !== "all" && rev.productId !== productFilter) return false;
 
     // Rating filter
     if (ratingFilter !== "all" && rev.rating !== ratingFilter) return false;
@@ -236,20 +240,35 @@ export default function AdminReviewsPage() {
               ))}
             </div>
 
-            {/* Search and Star Filter */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div className="sm:col-span-8 relative">
+            {/* Search, Product Filter, and Star Filter */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+              <div className="md:col-span-5 relative">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by customer name, product, review title, order ID, or keywords..."
+                  placeholder="Search customer, product, title, order ID, or keywords..."
                   className="w-full bg-slate-50 border border-slate-200 focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100 rounded-2xl py-2.5 pl-10 pr-4 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none transition-all"
                 />
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               </div>
 
-              <div className="sm:col-span-4 flex items-center gap-2">
+              <div className="md:col-span-4 flex items-center gap-2">
+                <select
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-rose-400 focus:bg-white rounded-2xl py-2.5 px-3 text-xs font-bold text-slate-700 outline-none cursor-pointer truncate"
+                >
+                  <option value="all">All Products</option>
+                  {products.map((p) => (
+                    <option key={p.productId} value={p.productId}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-3 flex items-center gap-2">
                 <select
                   value={ratingFilter}
                   onChange={(e) =>
@@ -258,12 +277,27 @@ export default function AdminReviewsPage() {
                   className="w-full bg-slate-50 border border-slate-200 focus:border-rose-400 focus:bg-white rounded-2xl py-2.5 px-3 text-xs font-bold text-slate-700 outline-none cursor-pointer"
                 >
                   <option value="all">All Star Ratings</option>
-                  <option value="5">⭐⭐⭐⭐⭐ 5 Stars Only</option>
-                  <option value="4">⭐⭐⭐⭐ 4 Stars Only</option>
-                  <option value="3">⭐⭐⭐ 3 Stars Only</option>
-                  <option value="2">⭐⭐ 2 Stars Only</option>
-                  <option value="1">⭐ 1 Star Only</option>
+                  <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                  <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                  <option value="3">⭐⭐⭐ 3 Stars</option>
+                  <option value="2">⭐⭐ 2 Stars</option>
+                  <option value="1">⭐ 1 Star</option>
                 </select>
+
+                {(searchQuery || productFilter !== "all" || ratingFilter !== "all" || activeTab !== "all") && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setProductFilter("all");
+                      setRatingFilter("all");
+                      setActiveTab("all");
+                    }}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold px-3 py-2.5 rounded-2xl whitespace-nowrap transition-colors cursor-pointer"
+                    title="Reset all filters"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
             </div>
           </div>

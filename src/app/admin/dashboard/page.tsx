@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   Sparkles,
+  Star,
 } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
@@ -24,7 +25,7 @@ import { Order } from "@/types";
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { adminUser } = useAdminAuth();
-  const { orders, products } = useStore();
+  const { orders, products, reviews } = useStore();
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -306,6 +307,48 @@ export default function AdminDashboardPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Customer Reviews Overview Card */}
+              <div className="p-6 rounded-3xl bg-white border border-slate-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                    <span>Customer Reviews</span>
+                  </h3>
+                  <Link
+                    href="/admin/reviews"
+                    className="text-[11px] font-bold text-miki-pink hover:underline flex items-center gap-1"
+                  >
+                    <span>Manage</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 text-center">
+                  <div className="p-3 bg-slate-50 rounded-2xl">
+                    <div className="text-lg font-black text-slate-900">
+                      {reviews.length > 0
+                        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+                        : "5.0"}
+                      <span className="text-xs text-amber-500 font-normal ml-0.5">★</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Store Rating</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-2xl">
+                    <div className="text-lg font-black text-slate-900">{reviews.length}</div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Total Reviews</span>
+                  </div>
+                </div>
+
+                {reviews.filter((r) => r.status === "pending").length > 0 && (
+                  <Link
+                    href="/admin/reviews"
+                    className="block bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold p-3 rounded-2xl transition-colors text-center"
+                  >
+                    ⚠️ {reviews.filter((r) => r.status === "pending").length} Review(s) Awaiting Moderation
+                  </Link>
+                )}
               </div>
             </div>
           </div>
