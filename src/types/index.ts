@@ -127,13 +127,19 @@ export interface AdminUser {
 
 export interface Review {
   id: string;
-  productId?: string;
+  productId: string;
+  productSlug: string;
+  productName: string;
   author: string;
-  rating: number;
+  customerId: string;       // links to CustomerUser.id
+  orderId: string;          // proves purchase
+  rating: number;           // 1–5
+  title?: string;           // optional headline
   comment: string;
-  date: string;
-  verified: boolean;
-  productName?: string;
+  date: string;             // human-readable display date
+  createdAt: string;        // ISO timestamp for sorting
+  verified: boolean;        // always true (purchase-verified)
+  status: "pending" | "approved" | "rejected"; // admin moderation
 }
 
 export interface CustomerMessage {

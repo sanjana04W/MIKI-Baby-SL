@@ -1,18 +1,18 @@
 [
   {
-    "orderId": "MIKI-2026-9999",
-    "customerId": "cust-wenuri-001",
+    "orderId": "MIKI-2026-1001",
+    "customerId": "cust-1787581215118",
     "customerInfo": {
-      "name": "wenu",
-      "phone": "0701442569",
-      "email": "s23010422@ousl.lk",
-      "address": "Kadahapola, Horombawa",
-      "district": "Kurunegala"
+      "name": "Wenuri Sanjana",
+      "phone": "0767568100",
+      "email": "wenuris2004@gmail.com",
+      "address": "No. 12, Kandy Road",
+      "district": "Gampaha"
     },
     "items": [
       {
         "productId": "miki-prod-001",
-        "name": "Art",
+        "name": "Watercolor Woodland Safari Wall Art Set",
         "price": 3450,
         "quantity": 1
       }
@@ -21,8 +21,36 @@
     "deliveryFee": 0,
     "totalAmount": 3450,
     "paymentMethod": "COD",
-    "paymentStatus": "pending",
-    "orderStatus": "Pending",
-    "createdAt": "2026-08-24T05:00:48.367Z"
+    "paymentStatus": "collected",
+    "orderStatus": "Completed",
+    "createdAt": "2026-08-25T10:00:00.000Z",
+    "updatedAt": "2026-08-28T14:00:00.000Z"
+  },
+  {
+    "orderId": "MIKI-2026-1002",
+    "customerId": "cust-1787582001201",
+    "customerInfo": {
+      "name": "Kasun Bandara",
+      "phone": "0712345678",
+      "email": "kasun.bandara@gmail.com",
+      "address": "No 45 Galle Road",
+      "district": "Colombo"
+    },
+    "items": [
+      {
+        "productId": "miki-prod-002",
+        "name": "Personalized Baby Name Cloud Wall Art",
+        "price": 4200,
+        "quantity": 1
+      }
+    ],
+    "subtotal": 4200,
+    "deliveryFee": 0,
+    "totalAmount": 4200,
+    "paymentMethod": "COD",
+    "paymentStatus": "collected",
+    "orderStatus": "Completed",
+    "createdAt": "2026-08-26T11:30:00.000Z",
+    "updatedAt": "2026-08-29T16:00:00.000Z"
   }
 ]

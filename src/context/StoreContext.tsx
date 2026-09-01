@@ -26,6 +26,20 @@ interface StoreContextType {
   togglePromotion: (promoId: string) => void;
   getProductBySlug: (slug: string) => Product | undefined;
   getProductById: (id: string) => Product | undefined;
+  addReview: (reviewData: {
+    productId: string;
+    productSlug?: string;
+    productName?: string;
+    author: string;
+    customerId: string;
+    customerEmail: string;
+    rating: number;
+    title?: string;
+    comment: string;
+  }) => Promise<{ success: boolean; message: string; review?: Review }>;
+  deleteReview: (reviewId: string) => Promise<boolean>;
+  updateReviewStatus: (reviewId: string, status: "approved" | "rejected" | "pending") => Promise<boolean>;
+  refreshReviews: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -35,7 +49,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [promotions, setPromotions] = useState<Promotion[]>(INITIAL_PROMOTIONS);
-  const [reviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
 
   const isLoadedRef = React.useRef(false);
   const isMountedRef = React.useRef(false);
@@ -92,6 +106,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 } catch {}
                 return merged;
               });
+            }
+          })
+          .catch(() => {});
+
+        // Fetch centralized reviews from server API
+        fetch("/api/reviews/admin")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success && Array.isArray(data.reviews)) {
+              setReviews(data.reviews);
             }
           })
           .catch(() => {});
@@ -401,6 +425,85 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
+  const refreshReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews/admin", { cache: "no-store" });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.reviews)) {
+        setReviews(data.reviews);
+      }
+    } catch (e) {
+      console.warn("refreshReviews error:", e);
+    }
+  };
+
+  const addReview = async (reviewData: {
+    productId: string;
+    productSlug?: string;
+    productName?: string;
+    author: string;
+    customerId: string;
+    customerEmail: string;
+    rating: number;
+    title?: string;
+    comment: string;
+  }): Promise<{ success: boolean; message: string; review?: Review }> => {
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reviewData),
+      });
+      const data = await res.json();
+      if (data.success && data.review) {
+        setReviews((prev) => [data.review, ...prev.filter((r) => r.id !== data.review.id)]);
+        return { success: true, message: data.message, review: data.review };
+      }
+      return { success: false, message: data.message || "Failed to submit review." };
+    } catch {
+      return { success: false, message: "Network error submitting review." };
+    }
+  };
+
+  const updateReviewStatus = async (
+    reviewId: string,
+    status: "approved" | "rejected" | "pending"
+  ): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/reviews/admin", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: reviewId, status }),
+      });
+      const data = await res.json();
+      if (data.success && data.review) {
+        setReviews((prev) =>
+          prev.map((r) => (r.id === reviewId ? { ...r, status } : r))
+        );
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const deleteReview = async (reviewId: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/reviews/admin?id=${encodeURIComponent(reviewId)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -419,6 +522,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         togglePromotion,
         getProductBySlug,
         getProductById,
+        addReview,
+        deleteReview,
+        updateReviewStatus,
+        refreshReviews,
       }}
     >
       {children}

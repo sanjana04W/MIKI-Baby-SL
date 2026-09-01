@@ -2454,34 +2454,8 @@ export const INITIAL_PROMOTIONS: Promotion[] = [
   },
 ];
 
-export const INITIAL_REVIEWS: Review[] = [
-  {
-    id: "rev-1",
-    author: "Shenali K.",
-    rating: 5,
-    comment: "The Safari animal wall art set for my baby boy's nursery is absolutely stunning! High quality framing and super fast COD delivery.",
-    date: "10 Aug 2026",
-    verified: true,
-    productName: "Safari Jungle Animals Nursery Wall Art",
-  },
-  {
-    id: "rev-2",
-    author: "Tharindu M.",
-    rating: 5,
-    comment: "Ordered the personalized birth stats plaque for my niece. Everyone at the baby shower loved it. 100% recommended!",
-    date: "05 Aug 2026",
-    verified: true,
-    productName: "Personalized Baby Name Cloud Wall Art",
-  },
-  {
-    id: "rev-3",
-    author: "Rashmi Wickramasinghe",
-    rating: 5,
-    comment: "Very polite WhatsApp response and very careful packaging. Will definitely buy again from MIKI!",
-    date: "01 Aug 2026",
-    verified: true,
-  },
-];
+export const INITIAL_REVIEWS: Review[] = [];
+
 
 export const INITIAL_ADMIN_USERS: AdminUser[] = [
   {

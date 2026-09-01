@@ -35,7 +35,8 @@ export function getServerUsers(): CustomerUser[] {
     ensureFilesExist();
     if (fs.existsSync(USERS_FILE)) {
       const data = fs.readFileSync(USERS_FILE, "utf8");
-      const parsed = JSON.parse(data);
+      const cleanData = data.replace(/^\uFEFF/, "").trim();
+      const parsed = JSON.parse(cleanData || "[]");
       if (Array.isArray(parsed)) {
         inMemoryUsers = parsed;
         return inMemoryUsers;
@@ -145,7 +146,8 @@ export function getServerOrders(): Order[] {
     ensureFilesExist();
     if (fs.existsSync(ORDERS_FILE)) {
       const data = fs.readFileSync(ORDERS_FILE, "utf8");
-      const parsed = JSON.parse(data);
+      const cleanData = data.replace(/^\uFEFF/, "").trim();
+      const parsed = JSON.parse(cleanData || "[]");
       if (Array.isArray(parsed)) {
         inMemoryOrders = parsed;
         return parsed;

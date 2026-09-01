@@ -1,0 +1,50 @@
+[
+  {
+    "id": "rev-1788251837525-76qr",
+    "productId": "miki-prod-001",
+    "productSlug": "watercolor-woodland-safari-wall-art-set-001",
+    "productName": "Watercolor Woodland Safari Wall Art Set",
+    "author": "Wenuri Sanjana",
+    "customerId": "cust-1787581215118",
+    "orderId": "MIKI-2026-1001",
+    "rating": 5,
+    "title": "Super fast delivery and beautiful wooden frames!",
+    "comment": "I received the woodland safari wall art set for my baby nursery in Colombo. Framing was solid, glass was clear, and it arrived in 2 days.",
+    "date": "Sep 01, 2026",
+    "createdAt": "2026-09-01T08:37:17.503Z",
+    "verified": true,
+    "status": "approved"
+  },
+  {
+    "id": "rev-init-101",
+    "productId": "miki-prod-001",
+    "productSlug": "watercolor-woodland-safari-wall-art-set-001",
+    "productName": "Watercolor Woodland Safari Wall Art Set",
+    "author": "Shenali Karunaratne",
+    "customerId": "cust-demo-1",
+    "orderId": "MIKI-2026-8812",
+    "rating": 5,
+    "title": "Absolutely gorgeous quality and vibrant colors!",
+    "comment": "The Safari animal wall art set for my baby boy nursery is stunning! High quality framing, rich texture on the paper, and very fast COD delivery. Highly recommend MIKI!",
+    "date": "24 Aug 2026",
+    "createdAt": "2026-08-24T12:00:00.000Z",
+    "verified": true,
+    "status": "approved"
+  },
+  {
+    "id": "rev-init-102",
+    "productId": "miki-prod-001",
+    "productSlug": "watercolor-woodland-safari-wall-art-set-001",
+    "productName": "Watercolor Woodland Safari Wall Art Set",
+    "author": "Tharindu Mendis",
+    "customerId": "cust-demo-2",
+    "orderId": "MIKI-2026-8815",
+    "rating": 5,
+    "title": "Perfect baby shower gift",
+    "comment": "Ordered this for our nursery wall and all our guests loved it during the baby shower. The frame was securely packaged in bubble wrap.",
+    "date": "26 Aug 2026",
+    "createdAt": "2026-08-26T09:30:00.000Z",
+    "verified": true,
+    "status": "approved"
+  }
+]
