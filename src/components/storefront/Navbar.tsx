@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full">
+    <header className="sticky top-0 z-40 w-full bg-brand-secondary">
       {/* Top Announcement Ticker */}
       <div className="bg-gradient-to-r from-miki-pink via-miki-rose to-miki-lavender text-white text-xs font-semibold py-2 px-4 text-center">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
