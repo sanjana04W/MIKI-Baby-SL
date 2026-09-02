@@ -3046,6 +3046,9 @@ video {
 .hover\:bg-slate-50\/70:hover {
   background-color: rgb(248 250 252 / 0.7);
 }
+.hover\:bg-slate-50\/80:hover {
+  background-color: rgb(248 250 252 / 0.8);
+}
 .hover\:bg-slate-800:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
@@ -3056,9 +3059,6 @@ video {
 }
 .hover\:bg-white\/30:hover {
   background-color: rgb(255 255 255 / 0.3);
-}
-.hover\:bg-white\/60:hover {
-  background-color: rgb(255 255 255 / 0.6);
 }
 .hover\:from-rose-500:hover {
   --tw-gradient-from: #f43f5e var(--tw-gradient-from-position);

@@ -19,6 +19,8 @@ import {
   ThumbsUp,
   Award,
   Zap,
+  RotateCcw,
+  Headphones,
 } from "lucide-react";
 import { Navbar } from "@/components/storefront/Navbar";
 import { Footer } from "@/components/storefront/Footer";
@@ -183,44 +185,44 @@ export default function HomePage() {
         {/* ANIMATED TRUST BADGES STRIP */}
         <section className="max-w-7xl mx-auto px-4 sm:px-8">
           <ScrollReveal variant="scale-up" delay={100}>
-            <div className="glass-card rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 border border-slate-100 shadow-xl">
-              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-white/60 transition-all hover:scale-105">
-                <div className="w-12 h-12 rounded-2xl bg-miki-lightPink text-miki-pink flex items-center justify-center shrink-0 shadow-sm">
+            <div className="glass-card rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 border border-slate-100 shadow-xl bg-white/90">
+              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50/80 transition-all hover:scale-105">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-miki-pink flex items-center justify-center shrink-0 shadow-sm border border-rose-100">
                   <Truck className="w-6 h-6 animate-bounce" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800">Islandwide COD</h4>
-                  <p className="text-xs text-slate-500">Pay cash upon delivery in Sri Lanka</p>
+                  <h4 className="text-sm font-extrabold text-slate-800">Fast & Reliable Delivery</h4>
+                  <p className="text-xs text-slate-500 font-medium">Islandwide courier with order tracking</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-white/60 transition-all hover:scale-105">
-                <div className="w-12 h-12 rounded-2xl bg-miki-lightYellow text-miki-yellow flex items-center justify-center shrink-0 shadow-sm">
-                  <ThumbsUp className="w-6 h-6 text-amber-600" />
+              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50/80 transition-all hover:scale-105">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 shadow-sm border border-amber-100">
+                  <Award className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800">100% FB Verified</h4>
-                  <p className="text-xs text-slate-500">From 15+ verified customer reviews</p>
+                  <h4 className="text-sm font-extrabold text-slate-800">Premium Quality Craft</h4>
+                  <p className="text-xs text-slate-500 font-medium">300gsm linen cardstock & eco pine frames</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-white/60 transition-all hover:scale-105">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm">
-                  <ShieldCheck className="w-6 h-6" />
+              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50/80 transition-all hover:scale-105">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-sm border border-emerald-100">
+                  <RotateCcw className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800">Safe Packaging</h4>
-                  <p className="text-xs text-slate-500">Protected glass & framed prints</p>
+                  <h4 className="text-sm font-extrabold text-slate-800">Easy Returns & Exchanges</h4>
+                  <p className="text-xs text-slate-500 font-medium">Damage-free guarantee & hassle-free swaps</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-white/60 transition-all hover:scale-105">
-                <div className="w-12 h-12 rounded-2xl bg-miki-lightSky text-miki-sky flex items-center justify-center shrink-0 shadow-sm">
-                  <MessageCircle className="w-6 h-6" />
+              <div className="flex items-center gap-4 p-2 rounded-2xl hover:bg-slate-50/80 transition-all hover:scale-105">
+                <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 shadow-sm border border-sky-100">
+                  <Headphones className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800">WhatsApp Support</h4>
-                  <p className="text-xs text-slate-500">Direct assistance on 076 756 8100</p>
+                  <h4 className="text-sm font-extrabold text-slate-800">24/7 Dedicated Support</h4>
+                  <p className="text-xs text-slate-500 font-medium">Instant WhatsApp & phone help: 076 756 8100</p>
                 </div>
               </div>
             </div>
