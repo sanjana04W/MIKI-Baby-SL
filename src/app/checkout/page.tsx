@@ -286,7 +286,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FFFBF7]">
+    <div className="min-h-screen flex flex-col justify-between">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-8 py-10 w-full space-y-8">
