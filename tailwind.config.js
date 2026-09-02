@@ -24,6 +24,13 @@ module.exports = {
           dark: "#1E293B",
           slate: "#334155",
         },
+        "brand-primary": "#d33f49",
+        "brand-secondary": "#1e293b",
+        "brand-accent": "#f59e0b",
+        "bg-section-light": "#f9fafb",
+        "bg-card-muted": "#ffffff",
+        "text-primary": "#111827",
+        "text-muted": "#6b7280",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],

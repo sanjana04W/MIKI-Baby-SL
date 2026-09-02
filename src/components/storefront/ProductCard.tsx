@@ -69,7 +69,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <div
       onClick={handleCardClick}
-      className="group relative glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-card hover:border-miki-pink/40 flex flex-col h-full bg-white cursor-pointer active:scale-[0.98] border border-slate-100/90 w-full"
+      className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg hover:scale-105 flex flex-col h-full bg-card-muted cursor-pointer active:scale-[0.98] border border-gray-200 w-full"
     >
       {/* Badges Overlay */}
       <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 flex flex-col gap-1 pointer-events-none">
