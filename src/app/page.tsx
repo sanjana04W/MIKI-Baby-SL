@@ -64,7 +64,7 @@ export default function HomePage() {
 
       <main className="flex-1 space-y-20 pb-16">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden bg-section-light pt-12 pb-20 px-4 sm:px-8">
+        <section className="relative overflow-hidden bg-gradient-to-b from-miki-lightPink via-miki-cream to-white pt-12 pb-20 px-4 sm:px-8">
           <div className="absolute top-10 left-10 w-96 h-96 bg-miki-pink/20 rounded-full blur-3xl animate-float-slow pointer-events-none" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-miki-yellow/20 rounded-full blur-3xl animate-float-delayed pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-miki-sky/10 rounded-full blur-3xl pointer-events-none" />
