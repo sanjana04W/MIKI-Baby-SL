@@ -50,7 +50,7 @@ export default function CartPage() {
   const finalTotal = Math.max(0, subtotal - discountAmount);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col justify-between bg-[#FFFBF7]">
       <Navbar />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-8 py-10 w-full space-y-8">
