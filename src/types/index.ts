@@ -42,6 +42,16 @@ export interface Category {
   image?: string;
 }
 
+export interface FrameSize {
+  id: string;
+  label: string;          // e.g. "A4 (21 x 29.7 cm)"
+  widthMm?: number;
+  heightMm?: number;
+  frameType: string;      // e.g. "Wall Art Frame", "Canvas Stretched", "Door Plaque", "Growth Chart"
+  displayOrder: number;
+  status: 'active' | 'inactive';
+}
+
 export interface OrderItem {
   productId: string;
   name: string;
@@ -127,19 +137,13 @@ export interface AdminUser {
 
 export interface Review {
   id: string;
-  productId: string;
-  productSlug: string;
-  productName: string;
+  productId?: string;
   author: string;
-  customerId: string;       // links to CustomerUser.id
-  orderId: string;          // proves purchase
-  rating: number;           // 1–5
-  title?: string;           // optional headline
+  rating: number;
   comment: string;
-  date: string;             // human-readable display date
-  createdAt: string;        // ISO timestamp for sorting
-  verified: boolean;        // always true (purchase-verified)
-  status: "pending" | "approved" | "rejected"; // admin moderation
+  date: string;
+  verified: boolean;
+  productName?: string;
 }
 
 export interface CustomerMessage {
@@ -166,3 +170,35 @@ export interface CustomerUser {
   district?: string;
 }
 
+export type AuditAction =
+  | 'PRODUCT_CREATED'
+  | 'PRODUCT_UPDATED'
+  | 'PRODUCT_DELETED'
+  | 'VARIANT_ADDED'
+  | 'VARIANT_UPDATED'
+  | 'VARIANT_DELETED'
+  | 'STOCK_ADJUSTED'
+  | 'FEATURED_TOGGLED'
+  | 'CATEGORY_CREATED'
+  | 'CATEGORY_UPDATED'
+  | 'CATEGORY_DELETED'
+  | 'FRAME_SIZE_CREATED'
+  | 'FRAME_SIZE_UPDATED'
+  | 'FRAME_SIZE_DELETED'
+  | 'SETTINGS_UPDATED';
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  action: AuditAction;
+  performedBy: {
+    name: string;
+    email: string;
+    role: AdminRole;
+  };
+  targetType: 'product' | 'category' | 'frame_size' | 'inventory' | 'settings';
+  targetId: string;
+  targetName: string;
+  details: string;
+  metadata?: Record<string, any>;
+}
