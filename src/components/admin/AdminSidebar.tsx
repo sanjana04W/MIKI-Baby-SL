@@ -16,8 +16,10 @@ import {
   ExternalLink,
   ShieldCheck,
   Layers,
-  Star,
   X,
+  FolderTree,
+  Star,
+  History,
 } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { useStore } from "@/context/StoreContext";
@@ -29,7 +31,7 @@ const READ_ORDERS_KEY = "miki_read_order_notifications";
 export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const { adminUser, logout, hasPermission } = useAdminAuth();
-  const { orders, reviews } = useStore();
+  const { orders } = useStore();
 
   const isOwner = adminUser?.role === "owner";
 
@@ -37,8 +39,6 @@ export const AdminSidebar: React.FC = () => {
   const [messageBadge, setMessageBadge] = useState<number>(0);
   const [orderBadge, setOrderBadge] = useState<number>(0);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  const pendingReviewsCount = reviews.filter((r) => r.status === "pending").length;
 
   useEffect(() => {
     const handleToggle = () => setIsMobileOpen((prev) => !prev);
@@ -88,6 +88,18 @@ export const AdminSidebar: React.FC = () => {
       show: hasPermission("products"),
     },
     {
+      label: "Featured Products",
+      href: "/admin/featured",
+      icon: Star,
+      show: hasPermission("products"),
+    },
+    {
+      label: "Master Data",
+      href: "/admin/master-data",
+      icon: FolderTree,
+      show: isOwner || hasPermission("products"),
+    },
+    {
       label: "Stock & Inventory",
       href: "/admin/inventory",
       icon: Layers,
@@ -100,17 +112,16 @@ export const AdminSidebar: React.FC = () => {
       show: isOwner || hasPermission("products"),
     },
     {
-      label: "Customer Reviews",
-      href: "/admin/reviews",
-      icon: Star,
-      show: true,
-      badge: pendingReviewsCount > 0 ? String(pendingReviewsCount) : undefined,
-    },
-    {
       label: "Analytics",
       href: "/admin/analytics",
       icon: BarChart3,
       show: isOwner || hasPermission("analytics"),
+    },
+    {
+      label: "Audit Logs",
+      href: "/admin/audit-logs",
+      icon: History,
+      show: isOwner,
     },
     {
       label: "User Management",
