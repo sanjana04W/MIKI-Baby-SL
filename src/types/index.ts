@@ -138,12 +138,18 @@ export interface AdminUser {
 export interface Review {
   id: string;
   productId?: string;
+  productSlug?: string;
+  orderId?: string;
   author: string;
   rating: number;
   comment: string;
   date: string;
+  createdAt?: string;
   verified: boolean;
   productName?: string;
+  status?: "pending" | "approved" | "rejected";
+  customerId?: string;
+  title?: string;
 }
 
 export interface CustomerMessage {

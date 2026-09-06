@@ -49,7 +49,7 @@ export function getApprovedReviewsByProductId(productId: string): Review[] {
   const all = getReviews();
   return all
     .filter((r) => r.productId === productId && r.status === "approved")
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime());
 }
 
 export function createReview(review: Review): Review {

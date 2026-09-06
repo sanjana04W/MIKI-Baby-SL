@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Save, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
-import { Product } from "@/types";
+import { X, Save, Plus, Trash2, Layers } from "lucide-react";
+import { Product, ProductVariant } from "@/types";
 import { useStore } from "@/context/StoreContext";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { logAdminAction } from "@/lib/auditDb";
 
 interface ProductModalProps {
   product: Product | null;
@@ -11,26 +13,32 @@ interface ProductModalProps {
 }
 
 export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
+  const { adminUser } = useAdminAuth();
   const { addProduct, updateProduct, categories } = useStore();
 
+  const isEditing = Boolean(product);
+
   const [name, setName] = useState(product?.name || "");
-  const [categoryId, setCategoryId] = useState(product?.categoryId || categories[0]?.categoryId || "cat-wall-art");
+  const [categoryId, setCategoryId] = useState(product?.categoryId || categories[0]?.categoryId || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [dimensions, setDimensions] = useState(product?.dimensions || "A4 (21 x 29.7 cm)");
-  const [material, setMaterial] = useState(product?.material || "Premium Matte Art Paper & Pine Frame");
-  const [basePrice, setBasePrice] = useState<number>(product?.basePrice || 3500);
+  const [dimensions, setDimensions] = useState(product?.dimensions || "");
+  const [material, setMaterial] = useState(product?.material || "");
+  const [basePrice, setBasePrice] = useState<number>(product?.basePrice || 0);
   const [salePrice, setSalePrice] = useState<number | undefined>(product?.salePrice);
-  const [stockLevel, setStockLevel] = useState<number>(product?.stockLevel || 10);
+  const [stockLevel, setStockLevel] = useState<number>(product?.stockLevel || 0);
   const [isFeatured, setIsFeatured] = useState<boolean>(product?.isFeatured || false);
-  const [isNewArrival, setIsNewArrival] = useState<boolean>(product?.isNewArrival || true);
+  const [isNewArrival, setIsNewArrival] = useState<boolean>(product?.isNewArrival || false);
+  const [isPersonalizable, setIsPersonalizable] = useState<boolean>(product?.isPersonalizable || false);
+  const [personalizationFields, setPersonalizationFields] = useState<string>(
+    product?.personalizationFields?.join(", ") || ""
+  );
   const [status, setStatus] = useState<"active" | "archived">(product?.status || "active");
 
-  const [images, setImages] = useState<string[]>(
-    product?.images || [
-      "/images/661247360_122186257130624717_6303554255591935628_n.jpg",
-    ]
-  );
+  const [images, setImages] = useState<string[]>(product?.images || []);
   const [newImageUrl, setNewImageUrl] = useState("");
+
+  // Variant management
+  const [variants, setVariants] = useState<ProductVariant[]>(product?.variants || []);
 
   const handleAddImage = () => {
     if (newImageUrl.trim()) {
@@ -43,6 +51,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleAddVariant = () => {
+    setVariants((prev) => [
+      ...prev,
+      { id: `v-${Date.now()}`, name: "", price: 0, stock: 0 },
+    ]);
+  };
+
+  const handleUpdateVariant = (index: number, field: keyof ProductVariant, value: string | number) => {
+    setVariants((prev) =>
+      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
+    );
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -51,6 +76,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
+
+    const validVariants = variants.filter((v) => v.name.trim());
 
     const payload = {
       name,
@@ -62,17 +89,51 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
       basePrice: Number(basePrice),
       salePrice: salePrice ? Number(salePrice) : undefined,
       stockLevel: Number(stockLevel),
-      images: images.length > 0 ? images : ["/images/661247360_122186257130624717_6303554255591935628_n.jpg"],
+      images: images.length > 0 ? images : [],
       isFeatured,
       isNewArrival,
+      isPersonalizable,
+      personalizationFields: isPersonalizable
+        ? personalizationFields.split(",").map((f) => f.trim()).filter(Boolean)
+        : undefined,
       status,
-      stockStatus: Number(stockLevel) <= 0 ? "out_of_stock" as const : Number(stockLevel) <= 5 ? "low_stock" as const : "in_stock" as const,
+      variants: validVariants.length > 0 ? validVariants : undefined,
+      stockStatus:
+        Number(stockLevel) <= 0
+          ? ("out_of_stock" as const)
+          : Number(stockLevel) <= 5
+          ? ("low_stock" as const)
+          : ("in_stock" as const),
     };
 
     if (product) {
       updateProduct(product.productId, payload);
+      if (adminUser) {
+        logAdminAction({
+          action: "PRODUCT_UPDATED",
+          adminName: adminUser.name,
+          adminEmail: adminUser.email,
+          adminRole: adminUser.role,
+          targetType: "product",
+          targetId: product.productId,
+          targetName: payload.name,
+          details: `Updated product details and pricing. Variants: ${validVariants.length}.`,
+        });
+      }
     } else {
-      addProduct(payload);
+      const created = addProduct(payload);
+      if (adminUser) {
+        logAdminAction({
+          action: "PRODUCT_CREATED",
+          adminName: adminUser.name,
+          adminEmail: adminUser.email,
+          adminRole: adminUser.role,
+          targetType: "product",
+          targetId: created.productId,
+          targetName: payload.name,
+          details: `Created new product with ${validVariants.length} variant(s).`,
+        });
+      }
     }
 
     onClose();
@@ -83,7 +144,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
       <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-miki-cream sticky top-0 z-10">
           <h2 className="text-lg font-bold text-slate-800">
-            {product ? "Edit Product" : "Add New Wall Art / Gift"}
+            {isEditing ? "Edit Product" : "Add New Product"}
           </h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full">
             <X className="w-5 h-5" />
@@ -163,8 +224,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
                 type="number"
                 required
                 min={0}
-                value={basePrice}
+                value={basePrice || ""}
                 onChange={(e) => setBasePrice(Number(e.target.value))}
+                placeholder="0"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
               />
             </div>
@@ -187,8 +249,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
                 type="number"
                 required
                 min={0}
-                value={stockLevel}
+                value={stockLevel || ""}
                 onChange={(e) => setStockLevel(Number(e.target.value))}
+                placeholder="0"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
               />
             </div>
@@ -205,7 +268,73 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
             />
           </div>
 
-          <div className="flex items-center gap-6 pt-2">
+          {/* ── Product Variants Section ── */}
+          <div className="border border-slate-200 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
+                <Layers className="w-4 h-4 text-miki-pink" />
+                Product Variants
+              </h3>
+              <button
+                type="button"
+                onClick={handleAddVariant}
+                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Variant
+              </button>
+            </div>
+
+            {variants.length === 0 ? (
+              <p className="text-slate-400 text-xs py-2">
+                No variants added. Click "Add Variant" to create options like frame colors or sizes.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <div className="grid grid-cols-12 gap-2 text-[10px] font-black text-slate-400 uppercase px-1">
+                  <span className="col-span-5">Variant Name</span>
+                  <span className="col-span-3">Price (Rs.)</span>
+                  <span className="col-span-3">Stock</span>
+                  <span className="col-span-1"></span>
+                </div>
+                {variants.map((v, i) => (
+                  <div key={v.id} className="grid grid-cols-12 gap-2 items-center">
+                    <input
+                      type="text"
+                      value={v.name}
+                      onChange={(e) => handleUpdateVariant(i, "name", e.target.value)}
+                      placeholder="e.g. Framed - White Wood"
+                      className="col-span-5 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={v.price || ""}
+                      onChange={(e) => handleUpdateVariant(i, "price", Number(e.target.value))}
+                      placeholder="0"
+                      className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      value={v.stock || ""}
+                      onChange={(e) => handleUpdateVariant(i, "stock", Number(e.target.value))}
+                      placeholder="0"
+                      className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg p-2 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVariant(i)}
+                      className="col-span-1 text-slate-400 hover:text-rose-500 p-1 flex justify-center"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-6 pt-2 flex-wrap">
             <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-800">
               <input
                 type="checkbox"
@@ -225,7 +354,32 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
               />
               <span>Mark as New Arrival</span>
             </label>
+
+            <label className="flex items-center gap-2 cursor-pointer font-semibold text-slate-800">
+              <input
+                type="checkbox"
+                checked={isPersonalizable}
+                onChange={(e) => setIsPersonalizable(e.target.checked)}
+                className="rounded text-miki-pink focus:ring-miki-pink w-4 h-4"
+              />
+              <span>Personalizable</span>
+            </label>
           </div>
+
+          {isPersonalizable && (
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">
+                Personalization Fields (comma separated)
+              </label>
+              <input
+                type="text"
+                value={personalizationFields}
+                onChange={(e) => setPersonalizationFields(e.target.value)}
+                placeholder="e.g. Baby Name, Date of Birth, Birth Weight"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none focus:ring-2 focus:ring-miki-pink text-slate-800"
+              />
+            </div>
+          )}
 
           <div>
             <label className="font-bold text-slate-700 block mb-1">Product Gallery Image Relative Paths (/images/...)</label>
@@ -258,7 +412,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) 
                   type="text"
                   value={newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
-                  placeholder="e.g. /images/661247360_122186257130624717_6303554255591935628_n.jpg"
+                  placeholder="e.g. /images/generated/safari_animals_wall_art.jpg"
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2 outline-none text-slate-800"
                 />
                 <button

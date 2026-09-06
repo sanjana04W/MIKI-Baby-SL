@@ -84,9 +84,16 @@ export default function ProductDetailPage() {
   }
 
   let activePrice = product.salePrice || product.basePrice;
+  let activeStock = product.stockLevel;
+  let activeStockStatus = product.stockStatus;
+
   if (selectedVariant && product.variants) {
     const v = product.variants.find((varItem) => varItem.name === selectedVariant);
-    if (v) activePrice = v.price;
+    if (v) {
+      activePrice = v.price;
+      activeStock = v.stock;
+      activeStockStatus = v.stock <= 0 ? "out_of_stock" : v.stock <= 5 ? "low_stock" : "in_stock";
+    }
   }
   if (giftWrap) activePrice += 250;
 
@@ -335,17 +342,17 @@ export default function ProductDetailPage() {
               </div>
 
               <div>
-                {product.stockStatus === "in_stock" && (
+                {activeStockStatus === "in_stock" && (
                   <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1.5 rounded-full">
-                    <CheckCircle className="w-4 h-4 text-emerald-600" /> In Stock ({product.stockLevel})
+                    <CheckCircle className="w-4 h-4 text-emerald-600" /> In Stock ({activeStock})
                   </span>
                 )}
-                {product.stockStatus === "low_stock" && (
+                {activeStockStatus === "low_stock" && (
                   <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-full">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" /> Low Stock ({product.stockLevel} left)
+                    <AlertTriangle className="w-4 h-4 text-amber-600" /> Low Stock ({activeStock} left)
                   </span>
                 )}
-                {product.stockStatus === "out_of_stock" && (
+                {activeStockStatus === "out_of_stock" && (
                   <span className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1.5 rounded-full">
                     Out of Stock
                   </span>

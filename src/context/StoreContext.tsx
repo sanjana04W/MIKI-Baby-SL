@@ -1,10 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Product, Category, Order, Promotion, Review, OrderStatus, StockStatus } from "@/types";
+import { Product, Category, FrameSize, Order, Promotion, Review, OrderStatus, StockStatus } from "@/types";
 import {
   INITIAL_PRODUCTS,
   INITIAL_CATEGORIES,
+  INITIAL_FRAME_SIZES,
   INITIAL_ORDERS,
   INITIAL_PROMOTIONS,
   INITIAL_REVIEWS,
@@ -13,6 +14,7 @@ import {
 interface StoreContextType {
   products: Product[];
   categories: Category[];
+  frameSizes: FrameSize[];
   orders: Order[];
   promotions: Promotion[];
   reviews: Review[];
@@ -20,6 +22,12 @@ interface StoreContextType {
   updateProduct: (productId: string, updates: Partial<Product>) => void;
   deleteProduct: (productId: string) => void;
   adjustStock: (productId: string, newStock: number) => void;
+  addCategory: (data: Omit<Category, "categoryId">) => void;
+  updateCategory: (categoryId: string, updates: Partial<Category>) => void;
+  deleteCategory: (categoryId: string) => void;
+  addFrameSize: (data: Omit<FrameSize, "id">) => void;
+  updateFrameSize: (id: string, updates: Partial<FrameSize>) => void;
+  deleteFrameSize: (id: string) => void;
   createOrder: (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus, reason?: string, internalNotes?: string) => void;
   addPromotion: (promo: Omit<Promotion, "promoId">) => void;
@@ -47,6 +55,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [frameSizes, setFrameSizes] = useState<FrameSize[]>(INITIAL_FRAME_SIZES);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [promotions, setPromotions] = useState<Promotion[]>(INITIAL_PROMOTIONS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
@@ -61,6 +70,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const savedProds = localStorage.getItem("miki_products");
         const savedOrders = localStorage.getItem("miki_orders");
         const savedPromos = localStorage.getItem("miki_promotions");
+        const savedCategories = localStorage.getItem("miki_categories");
+        const savedFrameSizes = localStorage.getItem("miki_frame_sizes");
 
         if (savedProds) {
           const parsed = JSON.parse(savedProds);
@@ -81,6 +92,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         } else {
           localStorage.setItem("miki_products", JSON.stringify(INITIAL_PRODUCTS));
+        }
+
+        if (savedCategories) {
+          const parsed = JSON.parse(savedCategories);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCategories(parsed);
+          }
+        } else {
+          localStorage.setItem("miki_categories", JSON.stringify(INITIAL_CATEGORIES));
+        }
+
+        if (savedFrameSizes) {
+          const parsed = JSON.parse(savedFrameSizes);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setFrameSizes(parsed);
+          }
+        } else {
+          localStorage.setItem("miki_frame_sizes", JSON.stringify(INITIAL_FRAME_SIZES));
         }
 
         if (savedOrders) {
@@ -161,6 +190,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (Array.isArray(parsed)) setPromotions(parsed);
         } catch {}
       }
+      if (e.key === "miki_categories" && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) setCategories(parsed);
+        } catch {}
+      }
+      if (e.key === "miki_frame_sizes" && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) setFrameSizes(parsed);
+        } catch {}
+      }
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -194,6 +235,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error(e);
     }
   }, [promotions]);
+
+  useEffect(() => {
+    if (!isMountedRef.current) return;
+    try {
+      localStorage.setItem("miki_categories", JSON.stringify(categories));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (!isMountedRef.current) return;
+    try {
+      localStorage.setItem("miki_frame_sizes", JSON.stringify(frameSizes));
+    } catch (e) {
+      console.error(e);
+    }
+  }, [frameSizes]);
 
   const getProductBySlug = (slug: string) => {
     return products.find((p) => p.slug === slug || p.productId === slug);
@@ -266,6 +325,60 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const adjustStock = (productId: string, newStock: number) => {
     updateProduct(productId, { stockLevel: newStock });
+  };
+
+  // ── Category CRUD ──
+  const addCategory = (data: Omit<Category, "categoryId">) => {
+    const categoryId = `cat-${Date.now().toString().slice(-6)}`;
+    const newCat: Category = { ...data, categoryId };
+    setCategories((prev) => {
+      const updated = [...prev, newCat];
+      try { localStorage.setItem("miki_categories", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const updateCategory = (categoryId: string, updates: Partial<Category>) => {
+    setCategories((prev) => {
+      const updated = prev.map((c) => c.categoryId === categoryId ? { ...c, ...updates } : c);
+      try { localStorage.setItem("miki_categories", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const deleteCategory = (categoryId: string) => {
+    setCategories((prev) => {
+      const updated = prev.filter((c) => c.categoryId !== categoryId);
+      try { localStorage.setItem("miki_categories", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  // ── Frame Size CRUD ──
+  const addFrameSize = (data: Omit<FrameSize, "id">) => {
+    const id = `fs-${Date.now().toString().slice(-6)}`;
+    const newFs: FrameSize = { ...data, id };
+    setFrameSizes((prev) => {
+      const updated = [...prev, newFs];
+      try { localStorage.setItem("miki_frame_sizes", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const updateFrameSize = (id: string, updates: Partial<FrameSize>) => {
+    setFrameSizes((prev) => {
+      const updated = prev.map((f) => f.id === id ? { ...f, ...updates } : f);
+      try { localStorage.setItem("miki_frame_sizes", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
+  const deleteFrameSize = (id: string) => {
+    setFrameSizes((prev) => {
+      const updated = prev.filter((f) => f.id !== id);
+      try { localStorage.setItem("miki_frame_sizes", JSON.stringify(updated)); } catch {}
+      return updated;
+    });
   };
 
   const createOrder = (orderData: Omit<Order, "orderId" | "createdAt" | "updatedAt">): Order => {
@@ -509,6 +622,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         products,
         categories,
+        frameSizes,
         orders,
         promotions,
         reviews,
@@ -516,6 +630,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateProduct,
         deleteProduct,
         adjustStock,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        addFrameSize,
+        updateFrameSize,
+        deleteFrameSize,
         createOrder,
         updateOrderStatus,
         addPromotion,
